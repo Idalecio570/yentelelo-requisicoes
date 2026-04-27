@@ -228,7 +228,7 @@ function ReqCard({ req, nivel, onApprove, isPending, busyId }: ReqCardProps) {
 
   const [action, setAction]       = useState<ApprovalDecisao | null>(null)
   const [showPreview, setPreview] = useState(false)
-  const hoverTimer = useRef<ReturnType<typeof setTimeout>>()
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const isBusy = isPending && busyId === req.id
 

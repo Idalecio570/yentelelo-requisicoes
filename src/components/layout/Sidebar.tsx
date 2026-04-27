@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import {
   Home, FileText, CheckCheck, CreditCard,
   BarChart3, Settings, Building2, FolderKanban,
-  ChevronDown, ChevronRight, X, Users, ClipboardList,
+  ChevronDown, ChevronRight, X, ClipboardList,
   LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -224,8 +224,7 @@ export function Sidebar({ onClose }: SidebarProps) {
               <>
                 <item.icon
                   size={15}
-                  className="shrink-0"
-                  style={{ opacity: isActive ? 1 : 0.7 }}
+                  className={cn("shrink-0", isActive ? "opacity-100" : "opacity-70")}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
                 {item.badge !== undefined && (

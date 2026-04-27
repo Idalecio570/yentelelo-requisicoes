@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Loader2, CheckCircle2 } from "lucide-react"
@@ -45,7 +45,7 @@ export function PaymentModal({
   })
 
   const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<FormValues>,
     defaultValues: {
       valor:          undefined,
       data_pagamento: new Date().toISOString().split("T")[0],

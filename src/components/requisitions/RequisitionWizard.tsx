@@ -311,10 +311,9 @@ function Step1({
 // ---------------------------------------------------------------------------
 
 function Step2({
-  register, watch, control, errors, entities, files, onFilesChange,
+  register, control, errors, entities, files, onFilesChange,
 }: {
   register:     ReturnType<typeof useForm<FormValues>>["register"]
-  watch:        ReturnType<typeof useForm<FormValues>>["watch"]
   control:      ReturnType<typeof useForm<FormValues>>["control"]
   errors:       ReturnType<typeof useForm<FormValues>>["formState"]["errors"]
   entities:     { id: string; nome: string }[]
@@ -612,7 +611,7 @@ export function RequisitionWizard() {
   const defaultDirecao = isGestorTics ? "" : (profile?.direcao_id ?? "")
 
   const {
-    register, control, handleSubmit, watch, setValue, reset,
+    register, control, watch, setValue, reset,
     trigger, formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -804,7 +803,6 @@ export function RequisitionWizard() {
         {step === 1 && (
           <Step2
             register={register}
-            watch={watch}
             control={control}
             errors={errors}
             entities={entities}

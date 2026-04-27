@@ -41,7 +41,7 @@ export function PaymentsCard({ requisition, profileId, canAdd, isAdmin }: Paymen
   const jaQuitado = saldo <= 0 && totalPago > 0
   const podePagar = canAdd && saldo > 0
 
-  const cfg = statusStyle[payStatus] ?? statusStyle.sem_pagamento
+  const cfg = statusStyle[payStatus] ?? { bg: "#F1F5F9", fg: "#475569", dot: "#94A3B8" }
 
   async function handleDelete(paymentId: string) {
     if (!confirm("Eliminar este pagamento?")) return

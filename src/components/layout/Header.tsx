@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Menu, Search, Bell, HelpCircle } from "lucide-react"
+import { Menu, Search, HelpCircle } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { NotificationBell } from "@/components/shared/NotificationBell"
 
