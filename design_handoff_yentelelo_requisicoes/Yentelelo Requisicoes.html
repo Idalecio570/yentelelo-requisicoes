@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Yentelelo Requisições — Hi-fi Prototype</title>
+<meta name="viewport" content="width=1440">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Canvas ambient */
+body { background: #ECEEF2; }
+/* Artboard wrapper — give the app fixed pixel size matching the artboard */
+.app-frame { width: 100%; height: 100%; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="components/primitives.jsx"></script>
+<script type="text/babel" src="components/data.jsx"></script>
+<script type="text/babel" src="components/shell.jsx"></script>
+<script type="text/babel" src="components/dashboard.jsx"></script>
+<script type="text/babel" src="components/lista.jsx"></script>
+<script type="text/babel" src="components/detalhe.jsx"></script>
+<script type="text/babel" src="components/wizard.jsx"></script>
+<script type="text/babel" src="components/aprovacoes.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+// Each artboard is a self-contained app with its own router + role
+const AppFrame = ({ initialView = 'dashboard', initialReq = null, role = 'colaborador', initialW = 1280, initialH = 820 }) => {
+  const [view, setView] = useState(initialView);
+  const [req, setReq] = useState(initialReq);
+
+  const onOpen = (v, r) => { setView(v); if (r) setReq(r); };
+  const onNew = () => setView('wizard');
+  const onBack = () => setView('lista');
+
+  const activeNav =
+    view === 'dashboard' ? 'dashboard'
+    : view === 'aprovacoes' ? 'aprovacoes'
+    : ['lista','detalhe','wizard'].includes(view) ? 'requisicoes'
+    : 'dashboard';
+
+  let body;
+  if (view === 'dashboard') body = <DashboardColab onOpen={onOpen} onNew={onNew} />;
+  else if (view === 'lista') body = <ListaReqs onOpen={onOpen} onNew={onNew} />;
+  else if (view === 'detalhe') body = <Detalhe req={req} onBack={onBack} onOpen={onOpen} />;
+  else if (view === 'wizard') body = <Wizard onClose={() => setView('lista')} onOpen={onOpen} />;
+  else if (view === 'aprovacoes') body = <Aprovacoes onOpen={onOpen} />;
+
+  return (
+    <div className="app-frame">
+      <div className="app">
+        <Sidebar active={activeNav} onNav={(k) => {
+          if (k === 'dashboard') setView('dashboard');
+          else if (k === 'requisicoes') setView('lista');
+          else if (k === 'aprovacoes') setView('aprovacoes');
+        }} role={role} />
+        <div className="app-main">
+          <Topbar onNew={onNew} />
+          <div className="page">{body}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ====== TWEAKS ======
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "sidebar": "dark",
+  "density": "comfortable",
+  "accent": "navy",
+  "radius": 4
+}/*EDITMODE-END*/;
+
+const TweaksRoot = () => {
+  const [t, setT] = useTweaks(TWEAK_DEFAULTS);
+  // Apply tweaks to CSS variables on body
+  useEffect(() => {
+    const root = document.documentElement;
+    if (t.sidebar === 'light') {
+      root.style.setProperty('--sb-bg', '#FFFFFF');
+    }
+    root.style.setProperty('--r', t.radius + 'px');
+    root.style.setProperty('--r-lg', (t.radius + 4) + 'px');
+    if (t.accent === 'red') root.style.setProperty('--brand-navy', '#B0211F');
+    else if (t.accent === 'gold') root.style.setProperty('--brand-navy', '#8A5A0B');
+    else root.style.setProperty('--brand-navy', '#002C62');
+    document.body.dataset.density = t.density;
+  }, [t]);
+
+  return (
+    <TweaksPanel title="Tweaks">
+      <TweakSection title="Aparência">
+        <TweakRadio label="Sidebar" value={t.sidebar} onChange={v => setT('sidebar', v)} options={[{value:'dark',label:'Escura'},{value:'light',label:'Clara'}]} />
+        <TweakRadio label="Cor primária" value={t.accent} onChange={v => setT('accent', v)} options={[{value:'navy',label:'Navy'},{value:'red',label:'Vermelho'},{value:'gold',label:'Dourado'}]} />
+        <TweakSlider label="Raio dos cantos" value={t.radius} onChange={v => setT('radius', v)} min={0} max={14} step={1} unit="px" />
+      </TweakSection>
+      <TweakSection title="Densidade">
+        <TweakRadio label="Espaçamento" value={t.density} onChange={v => setT('density', v)} options={[{value:'compact',label:'Compacto'},{value:'comfortable',label:'Conforto'}]} />
+      </TweakSection>
+    </TweaksPanel>
+  );
+};
+
+// ====== CANVAS ======
+const App = () => (
+  <>
+    <DesignCanvas title="Yentelelo Requisições — Sistema Interno" subtitle="Identidade visual + protótipo navegável · Maputo, Moçambique">
+      <DCSection id="prototype" title="Protótipo navegável" subtitle="Cada artboard é uma instância independente do sistema — clique para navegar dentro dela.">
+        <DCArtboard id="dashboard" label="Dashboard do colaborador" width={1280} height={820}>
+          <AppFrame initialView="dashboard" role="colaborador" />
+        </DCArtboard>
+        <DCArtboard id="lista" label="Lista de requisições" width={1280} height={820}>
+          <AppFrame initialView="lista" role="colaborador" />
+        </DCArtboard>
+        <DCArtboard id="detalhe" label="Detalhe da requisição (Director)" width={1280} height={920}>
+          <AppFrame initialView="detalhe" role="director" />
+        </DCArtboard>
+        <DCArtboard id="wizard" label="Wizard — Nova requisição (passo 2)" width={1280} height={820}>
+          <AppFrame initialView="wizard" role="colaborador" />
+        </DCArtboard>
+        <DCArtboard id="aprovacoes" label="Fila de aprovações (Gestora)" width={1280} height={820}>
+          <AppFrame initialView="aprovacoes" role="gestora" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="ds" title="Sistema visual" subtitle="Tokens de cor, tipografia, badges de estado e iconografia.">
+        <DCArtboard id="ds-colors" label="Paleta · Tipografia · Componentes" width={1280} height={820}>
+          <DSPanel />
+        </DCArtboard>
+        <DCArtboard id="ds-status" label="Badges de estado (8 estados)" width={680} height={520}>
+          <StatusPanel />
+        </DCArtboard>
+        <DCArtboard id="ds-icons" label="Iconografia por módulo" width={680} height={520}>
+          <IconsPanel />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+    <TweaksRoot />
+  </>
+);
+
+// === Design system showcase artboards ===
+const Swatch = ({ hex, name, role, fg = '#0F172A' }) => (
+  <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+    <div style={{ height: 64, background: hex }} />
+    <div style={{ padding: '10px 12px' }}>
+      <div style={{ fontSize: 12.5, fontWeight: 500 }}>{name}</div>
+      <div style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Geist Mono', marginTop: 2 }}>{hex}</div>
+      {role && <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>{role}</div>}
+    </div>
+  </div>
+);
+
+const DSPanel = () => (
+  <div style={{ padding: 32, background: '#fff', height: '100%', overflow: 'auto', fontFamily: 'Inter' }}>
+    <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom: 4 }}>
+      <Mono size={32} />
+      <div>
+        <div className="t-h1">Sistema visual</div>
+        <div className="t-meta">Yentelelo Requisições · derivado da paleta da marca Yentelelo Comunicações</div>
+      </div>
+    </div>
+    <hr className="hr" style={{ margin: '20px 0' }} />
+
+    <div className="t-tiny" style={{ marginBottom: 12 }}>Cores da marca</div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
+      <Swatch hex="#002C62" name="Navy primário" role="Sidebar, headings, primary" />
+      <Swatch hex="#EF2627" name="Vermelho marca" role="Destrutivo, prioridade alta" />
+      <Swatch hex="#FCC631" name="Dourado" role="Acentos, badges utilizador" />
+      <Swatch hex="#EFEFF1" name="Cinza claro" role="Surface secundária" />
+      <Swatch hex="#A9B6C7" name="Slate" role="Bordas, texto secundário" />
+    </div>
+
+    <div className="t-tiny" style={{ marginBottom: 12 }}>Neutros</div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 24 }}>
+      <Swatch hex="#FAFAFA" name="bg" />
+      <Swatch hex="#FFFFFF" name="surface" />
+      <Swatch hex="#F5F6F8" name="surface-2" />
+      <Swatch hex="#E6E8EC" name="border" />
+      <Swatch hex="#475569" name="text-2" />
+      <Swatch hex="#0F172A" name="text" />
+    </div>
+
+    <div className="t-tiny" style={{ marginBottom: 12 }}>Tipografia</div>
+    <div className="card card-pad" style={{ marginBottom: 24 }}>
+      <div className="t-display" style={{ marginBottom: 8 }}>Aa — Inter / Display</div>
+      <div className="t-h1" style={{ marginBottom: 4 }}>H1 · 22 / 600 — Requisições</div>
+      <div className="t-h2" style={{ marginBottom: 4 }}>H2 · 16 / 600 — Itens da requisição</div>
+      <div className="t-body" style={{ marginBottom: 4 }}>Body · 14 / 400 — Workshop de formação para 40 colaboradores na delegação da Matola.</div>
+      <div className="t-meta" style={{ marginBottom: 4 }}>Meta · 12 / 400 — Maputo, há 5 horas</div>
+      <div className="t-mono" style={{ fontSize: 13 }}>Mono · Geist Mono — REQ-2026-0148 · MZN 18 450</div>
+    </div>
+
+    <div className="t-tiny" style={{ marginBottom: 12 }}>Componentes</div>
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+      <Btn kind="primary" icon="plus">Nova requisição</Btn>
+      <Btn icon="download">Exportar</Btn>
+      <Btn kind="ghost" icon="filter">Filtros</Btn>
+      <Btn kind="danger" icon="x">Rejeitar</Btn>
+      <Btn size="sm">Pequeno</Btn>
+    </div>
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems:'center' }}>
+      <input className="input" placeholder="Procurar fornecedor…" style={{ width: 240 }} />
+      <Avatar name="Eunice Macamo" size={32} gold />
+      <Avatar name="Carlos Sitoe" size={32} />
+      <Avatar name="Telmo Cossa" size={32} />
+      <Avatar name="Aida Tembe" size={32} />
+    </div>
+  </div>
+);
+
+const StatusPanel = () => {
+  const states = ['pendente','analise','aprov1','director','final','rejeitado','devolvido','cancelado'];
+  return (
+    <div style={{ padding: 28, background: '#fff', height: '100%', overflow: 'auto' }}>
+      <div className="t-h1" style={{ marginBottom: 4 }}>Estados das requisições</div>
+      <div className="t-meta" style={{ marginBottom: 20 }}>8 estados ao longo da cadeia de aprovação.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {states.map(s => (
+          <div key={s} style={{ display:'flex', alignItems:'center', gap:14, padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 8 }}>
+            <StatusPill status={s} full />
+            <span className="t-meta" style={{ marginLeft: 'auto', fontFamily: 'Geist Mono' }}>{s}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const IconsPanel = () => {
+  const list = [
+    ['home','Dashboard'], ['fileText','Requisições'], ['checkCheck','Aprovações'],
+    ['building','Fornecedores'], ['creditCard','Pagamentos'], ['barChart','Relatórios'],
+    ['users','Utilizadores'], ['settings','Administração'],
+    ['plus','Nova'], ['check','Aprovar'], ['x','Rejeitar'], ['rotateCcw','Devolver'],
+    ['eye','Ver'], ['edit','Editar'], ['trash','Apagar'], ['download','Exportar'],
+    ['paperclip','Anexar'], ['send','Submeter'], ['bell','Notificações'], ['search','Procurar'],
+  ];
+  return (
+    <div style={{ padding: 28, background: '#fff', height: '100%', overflow: 'auto' }}>
+      <div className="t-h1" style={{ marginBottom: 4 }}>Iconografia</div>
+      <div className="t-meta" style={{ marginBottom: 20 }}>Estilo Lucide — traço 1.6, cantos arredondados.</div>
+      <div style={{ display:'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        {list.map(([n, l]) => (
+          <div key={n} style={{ display:'flex', alignItems:'center', gap: 10, padding: 10, border: '1px solid var(--border)', borderRadius: 6 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 6, background: '#F5F6F8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#002C62' }}>
+              <Icon name={n} size={16} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 500 }}>{l}</div>
+              <div style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'Geist Mono' }}>{n}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
