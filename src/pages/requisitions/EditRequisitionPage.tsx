@@ -143,7 +143,7 @@ export function EditRequisitionPage() {
           tipo:           values.tipo,
           urgencia:       values.urgencia,
           valor_estimado: values.valor_estimado ?? null,
-          entity_id:      values.entity_id ?? null,
+          entity_id:      values.entity_id || null,
           direcao_id:     values.direcao_id,
           orcamentos:     values.orcamentos.map((o) => ({
             fornecedor: o.fornecedor,
