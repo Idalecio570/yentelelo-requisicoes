@@ -607,7 +607,7 @@ export function RequisitionWizard() {
     return !!localStorage.getItem(`yentelelo_draft_${profile.id}`)
   })
 
-  const isGestorTics   = profile?.role === "gestor_tics"
+  const isGestorTics   = !profile?.direcao_id   // qualquer role sem direcção fixa vê o selector
   const defaultDirecao = isGestorTics ? "" : (profile?.direcao_id ?? "")
 
   const {
