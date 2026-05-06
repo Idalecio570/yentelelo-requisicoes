@@ -12,6 +12,7 @@ import { useDirecoes } from "@/hooks/useDirecoes"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { STATUS_LABELS, URGENCIA_LABELS } from "@/lib/constants"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DateInput } from "@/components/ui/date-input"
 import type { RequisitionStatus, RequisitionUrgencia } from "@/types"
 
 function todayISO() { return new Date().toISOString().split("T")[0] ?? "" }
@@ -33,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
   devolvido:              "#D97706",
 }
 
-const selectCls = "text-[13px] border border-[#E6E8EC] rounded-[8px] px-3 py-[7px] bg-white text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#002C62] focus:border-[#002C62]"
+
 const labelCls  = "block text-[11px] font-medium mb-1 text-[#475569]"
 
 function MetricCard({ label, value, color }: { label: string; value: string | number; color?: string }) {
@@ -219,11 +220,11 @@ export function ReportsPage() {
         <div className="flex flex-wrap gap-3 items-end">
           <div>
             <label className={labelCls}>Data início</label>
-            <input type="date" value={start} onChange={(e) => setStart(e.target.value)} className={selectCls} />
+            <DateInput value={start} onChange={(e) => setStart(e.target.value)} />
           </div>
           <div>
             <label className={labelCls}>Data fim</label>
-            <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className={selectCls} />
+            <DateInput value={end} onChange={(e) => setEnd(e.target.value)} />
           </div>
           <div>
             <label className={labelCls}>Direcção</label>

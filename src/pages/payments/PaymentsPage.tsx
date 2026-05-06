@@ -8,6 +8,7 @@ import { useDirecoes } from "@/hooks/useDirecoes"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DateInput } from "@/components/ui/date-input"
 import type { PaymentStatus } from "@/types"
 
 const payStatusLabels: Record<PaymentStatus, string> = {
@@ -24,7 +25,7 @@ const payStatusCls: Record<PaymentStatus, string> = {
   concluida:     "bg-green-50 text-green-700 ring-1 ring-green-200",
 }
 
-const selectCls = "text-[13px] border border-[#d2d2d7] rounded-[8px] px-3 py-[7px] bg-white text-[#1d1d1f] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
+
 const labelCls  = "block text-[11px] font-medium text-[#6e6e73] mb-1"
 const thCls     = "px-4 py-3 text-left text-[11px] font-medium text-[#6e6e73] uppercase tracking-wide whitespace-nowrap"
 const tdCls     = "px-4 py-3 text-[13px]"
@@ -113,11 +114,11 @@ export function PaymentsPage() {
           </div>
           <div>
             <label className={labelCls}>Data início</label>
-            <input type="date" value={start} onChange={(e) => setStart(e.target.value)} className={selectCls} />
+            <DateInput value={start} onChange={(e) => setStart(e.target.value)} />
           </div>
           <div>
             <label className={labelCls}>Data fim</label>
-            <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className={selectCls} />
+            <DateInput value={end} onChange={(e) => setEnd(e.target.value)} />
           </div>
           <button
             onClick={applyFilters}

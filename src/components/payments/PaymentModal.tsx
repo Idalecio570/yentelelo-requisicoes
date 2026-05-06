@@ -4,6 +4,7 @@ import { z } from "zod"
 import { Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { Modal } from "@/components/shared/Modal"
+import { DateInput } from "@/components/ui/date-input"
 import { useCreatePayment } from "@/hooks/usePayments"
 import { formatCurrency } from "@/lib/utils"
 import { cn } from "@/lib/utils"
@@ -147,10 +148,9 @@ export function PaymentModal({
             <label className="block text-[12px] font-medium mb-1" style={{ color: "#475569" }}>
               Data de Pagamento <span className="text-red-500">*</span>
             </label>
-            <input
-              type="date"
+            <DateInput
               {...register("data_pagamento")}
-              className={inputCls(errors.data_pagamento?.message)}
+              error={!!errors.data_pagamento}
             />
             {errors.data_pagamento && (
               <p className="mt-1 text-[11px] text-red-600">{errors.data_pagamento.message}</p>

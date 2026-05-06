@@ -22,6 +22,7 @@ import { formatCurrency, formatDate, formatRelativeTime } from "@/lib/utils"
 import { URGENCIA_LABELS } from "@/lib/constants"
 import { ItemsTable } from "@/components/requisitions/ItemsTable"
 import type { ItemRowData } from "@/components/requisitions/ItemsTable"
+import { DateInput } from "@/components/ui/date-input"
 import type { ApprovalDecisao } from "@/types"
 
 // ─── Status Stepper ───────────────────────────────────────────────────────────
@@ -714,11 +715,9 @@ export function RequisitionDetailPage() {
               </div>
               <div>
                 <label className={labelCls}>Data <span className="text-red-500">*</span></label>
-                <input
-                  type="date"
+                <DateInput
                   value={paymentForm.data}
                   onChange={(e) => setPaymentForm((p) => ({ ...p, data: e.target.value }))}
-                  className={inputCls}
                 />
               </div>
               <div>

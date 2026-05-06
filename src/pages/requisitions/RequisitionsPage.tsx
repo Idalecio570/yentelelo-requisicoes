@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { URGENCIA_LABELS, REQUISITION_STATUSES, REQUISITION_URGENCIAS, STATUS_LABELS } from "@/lib/constants"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DateInput } from "@/components/ui/date-input"
 import type { RequisitionStatus, RequisitionUrgencia, RequisitionTipo } from "@/types"
 
 const PAGE_SIZE = 10
@@ -154,19 +155,17 @@ export function RequisitionsPage() {
           </Select>
 
           <div className="flex gap-2">
-            <input
-              type="date"
+            <DateInput
               value={dateFrom}
               onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
               title="Data de início"
-              className={`${inputCls} flex-1 min-w-0`}
+              className="flex-1 min-w-0"
             />
-            <input
-              type="date"
+            <DateInput
               value={dateTo}
               onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
               title="Data de fim"
-              className={`${inputCls} flex-1 min-w-0`}
+              className="flex-1 min-w-0"
             />
           </div>
         </div>
