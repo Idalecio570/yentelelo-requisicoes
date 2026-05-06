@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { nome, email, password, role } = await req.json()
+    const { nome, email, password } = await req.json()
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? ""
     const SYSTEM_URL     = Deno.env.get("SYSTEM_URL") ?? "https://sistema.yentelelo.co.mz"

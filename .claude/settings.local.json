@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh --version)",
+      "Bash(ssh -V)",
+      "Bash(ssh-keygen -t ed25519 -C \"github-actions-yentelelo\" -f deploy_key -N \"\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git commit *)",
+      "Bash(winget --version)",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__get_logs",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__list_edge_functions",
+      "mcp__claude_ai_Supabase__deploy_edge_function",
+      "Bash(npm run *)",
+      "Bash(jq --version)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

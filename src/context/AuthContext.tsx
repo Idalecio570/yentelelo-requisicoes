@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // session?.user?.id é primitivo (string) — estável enquanto o utilizador não muda
   useEffect(() => {
     const userId = session?.user?.id
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!userId) { setProfile(null); return }
     setProfileLoading(true)
     supabase
@@ -79,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 /** Hook interno — use `useAuth` (de hooks/useAuth.ts) nos componentes da app */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuthContext() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error("useAuthContext deve ser usado dentro de AuthProvider")

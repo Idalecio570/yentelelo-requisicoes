@@ -463,6 +463,31 @@ function Step2({
 }
 
 // ---------------------------------------------------------------------------
+// Step 3 sub-components
+// ---------------------------------------------------------------------------
+
+function ReviewRow({ label, value, step, onGoTo }: {
+  label:  string
+  value?: string | null
+  step:   number
+  onGoTo: (step: number) => void
+}) {
+  return (
+    <div className="flex items-start justify-between py-2.5 border-b border-gray-100 last:border-0">
+      <dt className="text-xs text-gray-400 w-32 shrink-0 pt-0.5">{label}</dt>
+      <dd className="text-sm text-gray-800 flex-1">{value || "—"}</dd>
+      <button
+        type="button"
+        onClick={() => onGoTo(step)}
+        className="text-xs text-red-600 hover:underline ml-3 shrink-0"
+      >
+        Editar
+      </button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Step 3 — Review
 // ---------------------------------------------------------------------------
 
@@ -492,46 +517,31 @@ function Step3({
     normal: "Normal", urgente: "Urgente", muito_urgente: "Muito Urgente",
   }
 
-  function Row({ label, value, step }: { label: string; value?: string | null; step: number }) {
-    return (
-      <div className="flex items-start justify-between py-2.5 border-b border-gray-100 last:border-0">
-        <dt className="text-xs text-gray-400 w-32 shrink-0 pt-0.5">{label}</dt>
-        <dd className="text-sm text-gray-800 flex-1">{value || "—"}</dd>
-        <button
-          type="button"
-          onClick={() => onGoTo(step)}
-          className="text-xs text-red-600 hover:underline ml-3 shrink-0"
-        >
-          Editar
-        </button>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg border border-gray-200 p-5">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Detalhes</h3>
         <dl className="divide-y divide-gray-100">
-          <Row label="Tipo"     value={values.tipo === "compra" ? "Compra" : "Serviço"} step={0} />
-          <Row label="Urgência" value={urgenciaLabel[values.urgencia]}                  step={0} />
-          <Row label="Título"   value={values.titulo}                                   step={0} />
+          <ReviewRow label="Tipo"     value={values.tipo === "compra" ? "Compra" : "Serviço"} step={0} onGoTo={onGoTo} />
+          <ReviewRow label="Urgência" value={urgenciaLabel[values.urgencia]}                  step={0} onGoTo={onGoTo} />
+          <ReviewRow label="Título"   value={values.titulo}                                   step={0} onGoTo={onGoTo} />
           {values.descricao && (
-            <Row label="Descrição" value={values.descricao} step={0} />
+            <ReviewRow label="Descrição" value={values.descricao} step={0} onGoTo={onGoTo} />
           )}
-          {direcaoName && <Row label="Direcção" value={direcaoName} step={0} />}
+          {direcaoName && <ReviewRow label="Direcção" value={direcaoName} step={0} onGoTo={onGoTo} />}
         </dl>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-5">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Valor e Fornecedor</h3>
         <dl className="divide-y divide-gray-100">
-          <Row
+          <ReviewRow
             label="Valor est."
             value={values.valor_estimado ? formatCurrency(values.valor_estimado) : null}
             step={1}
+            onGoTo={onGoTo}
           />
-          <Row label="Fornecedor" value={supplierName}  step={1} />
+          <ReviewRow label="Fornecedor" value={supplierName}  step={1} onGoTo={onGoTo} />
         </dl>
         {values.orcamentos.length > 0 && (
           <div className="mt-3 space-y-1.5">

@@ -65,3 +65,36 @@ pendente, em_analise_escritorio, aprovado_escritorio, em_analise_director, aprov
 - Usar sempre RLS — zero acesso sem política activa
 - Queries via TanStack Query com chaves de cache padronizadas
 - Formulários via React Hook Form + Zod, sempre com validação client-side
+
+## Verificação e Testes
+
+### Automático (hook PostToolUse)
+Após cada edição a ficheiros `.ts` / `.tsx`, o hook corre automaticamente:
+```
+npx tsc --noEmit
+```
+Zero erros TypeScript é obrigatório antes de qualquer commit.
+
+### Build de produção
+```bash
+npm run build   # tsc -b + vite build — deve completar sem erros
+```
+
+### Servidor local
+```bash
+npm run dev     # http://localhost:5173
+```
+
+### Fluxos críticos a verificar manualmente
+1. **Login / Logout** — autenticação com conta real Supabase
+2. **Criar requisição** — wizard 3 passos; testar com todos os roles (colaborador, gestor_escritorio, gestor_tics)
+3. **Aprovação nível 1** — gestor_escritorio aprova/devolve/rejeita
+4. **Aprovação nível 2** — director_geral aprova/devolve/rejeita
+5. **Criar utilizador** — admin cria conta via edge function `create-user`
+6. **Refresh de página** — qualquer rota deve carregar sem erro 500
+
+### Casos limite a validar
+- Utilizador sem `direcao_id` a criar requisição → deve ver selector de direcção
+- Perfil não encontrado após login → mensagem clara, botão de logout
+- Formulários com dados inválidos → mensagens de erro Zod visíveis
+- Token de sessão expirado → redireccionamento para /login sem loop

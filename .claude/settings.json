@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(node -e \"try{const d=JSON.parse(process.env.CLAUDE_TOOL_INPUT||'{}');console.log(d.file_path||'')}catch(e){}\" 2>/dev/null); if [ -n \"$FILE\" ] && echo \"$FILE\" | grep -qE '\\.(ts|tsx)$'; then echo '--- TypeScript: a verificar tipos ---'; cd \"/c/Users/Administrator/Documents/antigravity folder/yentelelo-requisicoes\" && npx tsc --noEmit 2>&1 | head -40; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

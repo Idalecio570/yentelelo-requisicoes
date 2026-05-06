@@ -46,6 +46,7 @@ export function OnboardingModal({ profile }: OnboardingModalProps) {
 
   useEffect(() => {
     if (!localStorage.getItem(storageKey)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShow(true)
     }
   }, [storageKey])

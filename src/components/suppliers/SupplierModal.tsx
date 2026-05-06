@@ -76,6 +76,7 @@ export function SupplierModal({ open, onClose, supplier }: SupplierModalProps) {
     } else {
       reset({ nome: "", tipo: "empresa", nuit: "", email: "", telefone: "", banco: "", conta_bancaria: "", morada: "" })
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNuitError("")
   }, [supplier, open, reset])
 

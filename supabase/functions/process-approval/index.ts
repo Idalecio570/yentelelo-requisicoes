@@ -98,7 +98,6 @@ Deno.serve(async (req) => {
       const criador = req_data.profile as { email?: string; nome_completo?: string; notif_email?: boolean } | null
       if (criador?.email && criador?.notif_email !== false) {
         await enviarEmailNotificacao({
-          supabase,
           destinatario_email: criador.email,
           destinatario_nome:  criador.nome_completo ?? "Utilizador",
           req_titulo:         req_data.titulo,
@@ -126,7 +125,6 @@ Deno.serve(async (req) => {
 // ---------------------------------------------------------------------------
 
 async function enviarEmailNotificacao({
-  supabase: _supabase,
   destinatario_email,
   destinatario_nome,
   req_titulo,
@@ -134,7 +132,6 @@ async function enviarEmailNotificacao({
   novo_status,
   comentario,
 }: {
-  supabase:             ReturnType<typeof createClient>
   destinatario_email:   string
   destinatario_nome:    string
   req_titulo:           string
