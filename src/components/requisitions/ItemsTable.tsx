@@ -212,7 +212,6 @@ export function ItemsTable({
                           <SelectValue placeholder="— Seleccionar —" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">— Seleccionar —</SelectItem>
                           {ITEM_CATEGORIAS.map((c) => (
                             <SelectItem key={c} value={c}>{c}</SelectItem>
                           ))}

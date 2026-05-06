@@ -227,20 +227,20 @@ export function ReportsPage() {
           </div>
           <div>
             <label className={labelCls}>Direcção</label>
-            <Select value={direcaoId} onValueChange={setDirecaoId}>
+            <Select value={direcaoId || "_all"} onValueChange={(v) => setDirecaoId(v === "_all" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="_all">Todas</SelectItem>
                 {direcoes.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
             <label className={labelCls}>Tipo</label>
-            <Select value={tipo} onValueChange={setTipo}>
+            <Select value={tipo || "_all"} onValueChange={(v) => setTipo(v === "_all" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="_all">Todos</SelectItem>
                 <SelectItem value="compra">Compra</SelectItem>
                 <SelectItem value="servico">Serviço</SelectItem>
               </SelectContent>

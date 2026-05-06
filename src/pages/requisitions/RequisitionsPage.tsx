@@ -124,29 +124,29 @@ export function RequisitionsPage() {
             />
           </div>
 
-          <Select value={status} onValueChange={(v) => { setStatus(v as RequisitionStatus | ""); setPage(1) }}>
+          <Select value={status || "_all"} onValueChange={(v) => { setStatus(v === "_all" ? "" : v as RequisitionStatus); setPage(1) }}>
             <SelectTrigger><SelectValue placeholder="Todos os estados" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os estados</SelectItem>
+              <SelectItem value="_all">Todos os estados</SelectItem>
               {REQUISITION_STATUSES.filter((s) => s !== "rascunho").map((s) => (
                 <SelectItem key={s} value={s}>{STATUS_LABELS[s] ?? s.replace(/_/g, " ")}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={tipo} onValueChange={(v) => { setTipo(v as RequisitionTipo | ""); setPage(1) }}>
+          <Select value={tipo || "_all"} onValueChange={(v) => { setTipo(v === "_all" ? "" : v as RequisitionTipo); setPage(1) }}>
             <SelectTrigger><SelectValue placeholder="Todos os tipos" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os tipos</SelectItem>
+              <SelectItem value="_all">Todos os tipos</SelectItem>
               <SelectItem value="compra">Compra</SelectItem>
               <SelectItem value="servico">Serviço</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select value={urgencia} onValueChange={(v) => { setUrgencia(v as RequisitionUrgencia | ""); setPage(1) }}>
+          <Select value={urgencia || "_all"} onValueChange={(v) => { setUrgencia(v === "_all" ? "" : v as RequisitionUrgencia); setPage(1) }}>
             <SelectTrigger><SelectValue placeholder="Todas as urgências" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as urgências</SelectItem>
+              <SelectItem value="_all">Todas as urgências</SelectItem>
               {REQUISITION_URGENCIAS.map((u) => (
                 <SelectItem key={u} value={u}>{URGENCIA_LABELS[u]}</SelectItem>
               ))}

@@ -289,7 +289,6 @@ export function EditRequisitionPage() {
                     <SelectValue placeholder="Seleccione a direcção" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Seleccione a direcção</SelectItem>
                     {direcoes.map((d) => (
                       <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
                     ))}

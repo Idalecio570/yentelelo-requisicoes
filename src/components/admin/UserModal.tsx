@@ -252,7 +252,6 @@ export function UserModal({ open, onClose, user }: UserModalProps) {
                     <SelectValue placeholder="— Seleccione —" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">— Seleccione —</SelectItem>
                     {direcoes.map((d) => (
                       <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
                     ))}

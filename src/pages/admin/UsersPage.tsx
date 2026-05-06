@@ -91,30 +91,30 @@ export function UsersPage() {
           </div>
           <div>
             <label className={labelCls}>Função</label>
-            <Select value={role} onValueChange={(v) => setRole(v as Role | "")}>
+            <Select value={role || "_all"} onValueChange={(v) => setRole(v === "_all" ? "" : v as Role)}>
               <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="_all">Todas</SelectItem>
                 {ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
             <label className={labelCls}>Direcção</label>
-            <Select value={direcaoId} onValueChange={setDirecaoId}>
+            <Select value={direcaoId || "_all"} onValueChange={(v) => setDirecaoId(v === "_all" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="_all">Todas</SelectItem>
                 {direcoes.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
             <label className={labelCls}>Estado</label>
-            <Select value={ativo} onValueChange={(v) => setAtivo(v as "" | "true" | "false")}>
+            <Select value={ativo || "_all"} onValueChange={(v) => setAtivo(v === "_all" ? "" : v as "true" | "false")}>
               <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="_all">Todos</SelectItem>
                 <SelectItem value="true">Activos</SelectItem>
                 <SelectItem value="false">Inactivos</SelectItem>
               </SelectContent>

@@ -91,20 +91,20 @@ export function PaymentsPage() {
         <div className="flex flex-wrap gap-3 items-end">
           <div>
             <label className={labelCls}>Direcção</label>
-            <Select value={direcaoId} onValueChange={setDirecaoId}>
+            <Select value={direcaoId || "_all"} onValueChange={(v) => setDirecaoId(v === "_all" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="_all">Todas</SelectItem>
                 {direcoes.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
             <label className={labelCls}>Estado de Pagamento</label>
-            <Select value={payStatus} onValueChange={setPayStatus}>
+            <Select value={payStatus || "_all"} onValueChange={(v) => setPayStatus(v === "_all" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="_all">Todos</SelectItem>
                 {(["sem_pagamento","pendente","parcial","concluida"] as PaymentStatus[]).map((s) => (
                   <SelectItem key={s} value={s}>{payStatusLabels[s]}</SelectItem>
                 ))}

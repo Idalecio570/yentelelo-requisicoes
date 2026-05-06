@@ -179,12 +179,12 @@ function Step1({
           <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
             Usar um modelo anterior?
           </label>
-          <Select value={template ?? ""} onValueChange={handleTemplateChange}>
+          <Select value={template || "_none"} onValueChange={(v) => handleTemplateChange(v === "_none" ? "" : v)}>
             <SelectTrigger className="max-w-xs">
               <SelectValue placeholder="Sem template" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sem template</SelectItem>
+              <SelectItem value="_none">Sem template</SelectItem>
               {templates.map((t) => (
                 <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
               ))}
@@ -296,7 +296,6 @@ function Step1({
               <SelectValue placeholder="Seleccione a direcção" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Seleccione a direcção</SelectItem>
               {direcoes.map((d) => (
                 <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
               ))}
