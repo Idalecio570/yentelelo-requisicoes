@@ -9,7 +9,7 @@ import {
 import { PageWrapper } from "@/components/layout/PageWrapper"
 import { Breadcrumb } from "@/components/shared/Breadcrumb"
 import { ErrorState } from "@/components/shared/ErrorState"
-import { useCreateApproval, getNextStatus } from "@/hooks/useApprovals"
+import { useCreateApproval } from "@/hooks/useApprovals"
 import { useAuth } from "@/hooks/useAuth"
 import { supabase } from "@/lib/supabase"
 import { QUERY_KEYS, URGENCIA_LABELS } from "@/lib/constants"
@@ -437,7 +437,6 @@ export function ApprovalsPage() {
         nivel,
         decisao,
         comentario:     comment.trim() || null,
-        novo_status:    getNextStatus(nivel, decisao),
       })
       const msg = { aprovado: "Aprovado!", devolvido: "Devolvido para revisão.", rejeitado: "Rejeitado." }
       toast.success(msg[decisao])

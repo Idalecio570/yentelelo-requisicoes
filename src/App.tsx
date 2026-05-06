@@ -50,12 +50,19 @@ const router = createBrowserRouter([
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: "dashboard",        element: <DashboardPage /> },
           { path: "requisitions",     element: <RequisitionsPage /> },
-          { path: "requisitions/new", element: <NewRequisitionPage /> },
-          { path: "requisitions/:id",      element: <RequisitionDetailPage /> },
-          { path: "requisitions/:id/edit", element: <EditRequisitionPage /> },
+          { path: "requisitions/:id", element: <RequisitionDetailPage /> },
           { path: "suppliers",        element: <SuppliersPage /> },
           { path: "suppliers/:id",    element: <SupplierDetailPage /> },
           { path: "profile",          element: <ProfilePage /> },
+
+          // Criação e edição — auditor não tem acesso de escrita
+          {
+            element: <ProtectedRoute allowedRoles={["colaborador", "gestor_escritorio", "director_comercial", "director_projectos", "gestor_comercial", "gestor_tics", "director_geral", "admin"]} />,
+            children: [
+              { path: "requisitions/new",      element: <NewRequisitionPage /> },
+              { path: "requisitions/:id/edit", element: <EditRequisitionPage /> },
+            ],
+          },
 
           // -----------------------------------------------------------------
           // Aprovações + Pagamentos → gestor_escritorio, director_geral, admin

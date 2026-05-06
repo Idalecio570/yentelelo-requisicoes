@@ -746,6 +746,15 @@ export function RequisitionWizard() {
 
   async function saveDraftToDB() {
     if (!profile) return
+    saveDraftLocally()
+
+    const direcao = values.direcao_id || profile.direcao_id
+    if (!direcao) {
+      toast.success("Rascunho guardado localmente.")
+      navigate("/requisitions")
+      return
+    }
+
     try {
       await supabase.from("requisitions").insert({
         titulo:          values.titulo || "Rascunho",
@@ -755,20 +764,17 @@ export function RequisitionWizard() {
         valor_estimado:  values.valor_estimado ?? null,
         entity_id:       values.entity_id ?? null,
         criado_por:      profile.id,
-        direcao_id:      values.direcao_id || profile.direcao_id || "",
+        direcao_id:      direcao,
         template_origem: values.template_origem ?? null,
         status:          "rascunho",
         anexos:          [],
         orcamentos:      [],
       })
-      saveDraftLocally()
       toast.success("Rascunho guardado.")
-      navigate("/requisitions")
     } catch {
-      saveDraftLocally()
       toast.success("Rascunho guardado localmente.")
-      navigate("/requisitions")
     }
+    navigate("/requisitions")
   }
 
   const isLoading = isSubmitting || uploading

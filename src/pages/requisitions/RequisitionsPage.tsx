@@ -129,7 +129,7 @@ export function RequisitionsPage() {
             className={inputCls}
           >
             <option value="">Todos os estados</option>
-            {REQUISITION_STATUSES.map((s) => (
+            {REQUISITION_STATUSES.filter((s) => s !== "rascunho").map((s) => (
               <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
             ))}
           </select>

@@ -35,8 +35,46 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } }
     )
 
+    // Verificar identidade do chamador via JWT
+    const authHeader = req.headers.get("Authorization") ?? ""
+    const jwt        = authHeader.replace("Bearer ", "")
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(jwt)
+    if (authErr || !user) {
+      return new Response(
+        JSON.stringify({ error: "Não autorizado" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
     const payload: ApprovalPayload = await req.json()
     const { requisition_id, aprovador_id, nivel, decisao, comentario } = payload
+
+    // Garantir que aprovador_id corresponde ao utilizador autenticado
+    if (aprovador_id !== user.id) {
+      return new Response(
+        JSON.stringify({ error: "aprovador_id não corresponde ao utilizador autenticado" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    // Verificar role do aprovador para o nível pedido
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+
+    const role = callerProfile?.role
+    const permitted =
+      (nivel === 1 && (role === "gestor_escritorio" || role === "admin")) ||
+      (nivel === 2 && (role === "director_geral"    || role === "admin"))
+
+    if (!permitted) {
+      return new Response(
+        JSON.stringify({ error: "Sem permissão para aprovar neste nível" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
 
     // Busca a requisição com o perfil do criador
     const { data: req_data, error: reqErr } = await supabase

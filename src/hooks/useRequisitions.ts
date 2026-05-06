@@ -16,6 +16,7 @@ export function useRequisitions() {
       let query = supabase
         .from("requisitions")
         .select(SELECT_FULL)
+        .neq("status", "rascunho")
         .order("created_at", { ascending: false })
 
       if (!profile) return []

@@ -13,7 +13,7 @@ import { DangerConfirmModal } from "@/components/shared/DangerConfirmModal"
 import { StatusContextBanner } from "@/components/shared/StatusContextBanner"
 import { Breadcrumb } from "@/components/shared/Breadcrumb"
 import { useRequisition, useCancelRequisition } from "@/hooks/useRequisitions"
-import { useApprovals, useCreateApproval, getNextStatus } from "@/hooks/useApprovals"
+import { useApprovals, useCreateApproval } from "@/hooks/useApprovals"
 import { useComments, useCreateComment } from "@/hooks/useComments"
 import { usePayments, useCreatePayment } from "@/hooks/usePayments"
 import { useAuth } from "@/hooks/useAuth"
@@ -143,7 +143,6 @@ export function RequisitionDetailPage() {
   async function handleApproval() {
     if (!profile) return
     const nivel: 1 | 2 = canApproveL1 ? 1 : 2
-    const novo_status = getNextStatus(nivel, approvalModal.decisao)
     try {
       await createApproval.mutateAsync({
         requisition_id: id,
@@ -151,7 +150,6 @@ export function RequisitionDetailPage() {
         nivel,
         decisao:        approvalModal.decisao,
         comentario:     approvalComment || null,
-        novo_status,
       })
       toast.success("Decisão registada com sucesso!")
       setApprovalModal({ open: false, decisao: "aprovado" })
