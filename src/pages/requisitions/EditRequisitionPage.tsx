@@ -49,7 +49,7 @@ export function EditRequisitionPage() {
   const [uploading, setUploading] = useState(false)
   const [populated, setPopulated] = useState(false)
 
-  const isGestorTics = profile?.role === "gestor_tics"
+  const isGestorTics = !profile?.direcao_id
 
   const {
     register,
