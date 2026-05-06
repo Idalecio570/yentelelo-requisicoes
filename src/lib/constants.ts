@@ -96,9 +96,20 @@ export const DIRECAO_LABELS: Record<DirecaoCodigo, string> = {
 // Chaves de cache TanStack Query
 // ---------------------------------------------------------------------------
 
+export const ITEM_CATEGORIAS = [
+  "Alimentação",
+  "Energia",
+  "Telecomunicações",
+  "Transporte/Logística",
+  "Material de Escritório",
+  "Serviços",
+  "Outro",
+] as const
+
 export const QUERY_KEYS = {
   requisitions:     ["requisitions"] as const,
   requisition:      (id: string) => ["requisitions", id] as const,
+  requisitionItems: (reqId: string) => ["requisition-items", reqId] as const,
   entities:         ["entities"] as const,
   entity:           (id: string) => ["entities", id] as const,
   payments:         (reqId: string) => ["payments", reqId] as const,

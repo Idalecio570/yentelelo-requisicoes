@@ -16,9 +16,12 @@ import { useRequisition, useCancelRequisition } from "@/hooks/useRequisitions"
 import { useApprovals, useCreateApproval } from "@/hooks/useApprovals"
 import { useComments, useCreateComment } from "@/hooks/useComments"
 import { usePayments, useCreatePayment } from "@/hooks/usePayments"
+import { useRequisitionItems } from "@/hooks/useRequisitionItems"
 import { useAuth } from "@/hooks/useAuth"
 import { formatCurrency, formatDate, formatRelativeTime } from "@/lib/utils"
 import { URGENCIA_LABELS } from "@/lib/constants"
+import { ItemsTable } from "@/components/requisitions/ItemsTable"
+import type { ItemRowData } from "@/components/requisitions/ItemsTable"
 import type { ApprovalDecisao } from "@/types"
 
 // ─── Status Stepper ───────────────────────────────────────────────────────────
@@ -94,6 +97,7 @@ export function RequisitionDetailPage() {
   const { data: approvals = [] }         = useApprovals(id)
   const { data: comments  = [] }         = useComments(id)
   const { data: payments  = [] }         = usePayments(id)
+  const { data: reqItems  = [] }         = useRequisitionItems(id)
   const cancelReq      = useCancelRequisition()
   const createApproval = useCreateApproval()
   const createComment  = useCreateComment()
@@ -257,7 +261,7 @@ export function RequisitionDetailPage() {
                 <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5">{URGENCIA_LABELS[req.urgencia]}</dd>
               </div>
               <div>
-                <dt className="text-[11px] text-[#86868b]">Valor Estimado</dt>
+                <dt className="text-[11px] text-[#86868b]">Valor Total</dt>
                 <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5 tabular-nums">
                   {req.valor_estimado !== null ? formatCurrency(req.valor_estimado) : "—"}
                 </dd>
@@ -270,10 +274,13 @@ export function RequisitionDetailPage() {
                 <dt className="text-[11px] text-[#86868b]">Direcção</dt>
                 <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5">{req.direcao?.nome ?? "—"}</dd>
               </div>
-              <div>
-                <dt className="text-[11px] text-[#86868b]">Fornecedor</dt>
-                <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5">{req.entity?.nome ?? "—"}</dd>
-              </div>
+              {/* Fornecedor legado (requisições sem itens) */}
+              {req.entity?.nome && reqItems.length === 0 && (
+                <div>
+                  <dt className="text-[11px] text-[#86868b]">Fornecedor</dt>
+                  <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5">{req.entity.nome}</dd>
+                </div>
+              )}
               <div className="col-span-2">
                 <dt className="text-[11px] text-[#86868b]">Data de criação</dt>
                 <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5">{formatDate(req.created_at)}</dd>
@@ -285,6 +292,27 @@ export function RequisitionDetailPage() {
                 </div>
               )}
             </dl>
+          </div>
+
+          {/* Itens da Requisição */}
+          <div className={cardCls} style={cardStyle}>
+            <h2 className={`${sectionHdr} mb-4`}>Itens da Requisição</h2>
+            <ItemsTable
+              items={reqItems.map<ItemRowData>((it) => ({
+                _key:           it.id,
+                descricao:      it.descricao,
+                categoria:      it.categoria ?? "",
+                quantidade:     it.quantidade,
+                valor_unitario: it.valor_unitario,
+                entity_id:      it.entity_id ?? "",
+                entityName:     it.entity?.nome,
+                notas:          it.notas ?? "",
+                ordem:          it.ordem,
+              }))}
+              onChange={() => {}}
+              entities={[]}
+              readOnly
+            />
           </div>
 
           {/* Orçamentos */}

@@ -9,8 +9,11 @@ import { PageWrapper } from "@/components/layout/PageWrapper"
 import { Breadcrumb } from "@/components/shared/Breadcrumb"
 import { useAuth } from "@/hooks/useAuth"
 import { useRequisition, useUpdateRequisition } from "@/hooks/useRequisitions"
+import { useRequisitionItems, useSyncRequisitionItems } from "@/hooks/useRequisitionItems"
 import { useEntities } from "@/hooks/useEntities"
 import { useDirecoes } from "@/hooks/useDirecoes"
+import { ItemsTable, newItemRow } from "@/components/requisitions/ItemsTable"
+import type { ItemRowData } from "@/components/requisitions/ItemsTable"
 import { supabase } from "@/lib/supabase"
 import { URGENCIA_LABELS } from "@/lib/constants"
 
@@ -22,14 +25,12 @@ const orcamentoSchema = z.object({
 })
 
 const schema = z.object({
-  titulo:          z.string().min(3, "Mínimo 3 caracteres"),
-  descricao:       z.string().optional(),
-  tipo:            z.enum(["compra", "servico"]),
-  urgencia:        z.enum(["normal", "urgente", "muito_urgente"]),
-  valor_estimado:  z.number({ error: "Valor inválido" }).positive().optional().nullable(),
-  entity_id:       z.string().optional().nullable(),
-  direcao_id:      z.string().min(1, "Seleccione a direcção"),
-  orcamentos:      z.array(orcamentoSchema).max(3),
+  titulo:     z.string().min(3, "Mínimo 3 caracteres"),
+  descricao:  z.string().optional(),
+  tipo:       z.enum(["compra", "servico"]),
+  urgencia:   z.enum(["normal", "urgente", "muito_urgente"]),
+  direcao_id: z.string().min(1, "Seleccione a direcção"),
+  orcamentos: z.array(orcamentoSchema).max(3),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -39,15 +40,21 @@ export function EditRequisitionPage() {
   const navigate      = useNavigate()
   const { profile }   = useAuth()
 
-  const { data: req, isLoading: loadingReq } = useRequisition(id)
+  const { data: req,      isLoading: loadingReq } = useRequisition(id)
+  const { data: reqItems = [],       isLoading: loadingItems } = useRequisitionItems(id)
   const updateReq  = useUpdateRequisition()
-  const { data: entities  = [] } = useEntities()
-  const { data: direcoes  = [] } = useDirecoes()
+  const syncItems  = useSyncRequisitionItems()
+  const { data: entities = [] } = useEntities()
+  const { data: direcoes = [] } = useDirecoes()
 
-  const [newFiles, setNewFiles]   = useState<File[]>([])
-  const [keepUrls, setKeepUrls]   = useState<string[]>([])
-  const [uploading, setUploading] = useState(false)
-  const [populated, setPopulated] = useState(false)
+  const [newFiles,   setNewFiles]   = useState<File[]>([])
+  const [keepUrls,   setKeepUrls]   = useState<string[]>([])
+  const [uploading,  setUploading]  = useState(false)
+  const [populated,  setPopulated]  = useState(false)
+  const [items,      setItems]      = useState<ItemRowData[]>([newItemRow(1)])
+  const [itemsLoaded,setItemsLoaded]= useState(false)
+  const [showItemsErr, setShowItemsErr] = useState(false)
+  const [itemsError,   setItemsError]   = useState<string | null>(null)
 
   const isGestorTics = !profile?.direcao_id
 
@@ -62,8 +69,7 @@ export function EditRequisitionPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       titulo: "", descricao: "", tipo: "compra",
-      urgencia: "normal", valor_estimado: null,
-      entity_id: null, direcao_id: "", orcamentos: [],
+      urgencia: "normal", direcao_id: "", orcamentos: [],
     },
   })
 
@@ -71,18 +77,16 @@ export function EditRequisitionPage() {
     control, name: "orcamentos",
   })
 
-  // Preenche o formulário quando os dados chegam
+  // Preenche formulário quando dados chegam
   useEffect(() => {
     if (!req || populated) return
     reset({
-      titulo:         req.titulo,
-      descricao:      req.descricao ?? "",
-      tipo:           req.tipo ?? "compra",
-      urgencia:       req.urgencia,
-      valor_estimado: req.valor_estimado,
-      entity_id:      req.entity_id,
-      direcao_id:     req.direcao_id,
-      orcamentos:     req.orcamentos.map((o) => ({
+      titulo:     req.titulo,
+      descricao:  req.descricao ?? "",
+      tipo:       req.tipo ?? "compra",
+      urgencia:   req.urgencia,
+      direcao_id: req.direcao_id,
+      orcamentos: req.orcamentos.map((o) => ({
         fornecedor: o.fornecedor,
         valor:      o.valor,
         notas:      o.notas ?? "",
@@ -92,6 +96,25 @@ export function EditRequisitionPage() {
     setKeepUrls(req.anexos)
     setPopulated(true)
   }, [req, populated, reset])
+
+  // Preenche itens quando chegam da BD
+  useEffect(() => {
+    if (loadingItems || itemsLoaded) return
+    if (reqItems.length > 0) {
+      setItems(reqItems.map<ItemRowData>((it) => ({
+        _key:           it.id,
+        descricao:      it.descricao,
+        categoria:      it.categoria ?? "",
+        quantidade:     it.quantidade,
+        valor_unitario: it.valor_unitario,
+        entity_id:      it.entity_id ?? "",
+        entityName:     it.entity?.nome,
+        notas:          it.notas ?? "",
+        ordem:          it.ordem,
+      })))
+    }
+    setItemsLoaded(true)
+  }, [reqItems, loadingItems, itemsLoaded])
 
   // Guarda contra edições não autorizadas
   useEffect(() => {
@@ -127,6 +150,13 @@ export function EditRequisitionPage() {
   }
 
   async function onSubmit(values: FormValues) {
+    // Valida itens
+    if (items.length === 0 || items.some((it) => !it.descricao.trim() || it.valor_unitario <= 0 || it.quantidade <= 0)) {
+      setItemsError("Corrija os itens antes de guardar.")
+      setShowItemsErr(true)
+      return
+    }
+
     setUploading(true)
     try {
       let anexos = keepUrls
@@ -138,14 +168,12 @@ export function EditRequisitionPage() {
       await updateReq.mutateAsync({
         id,
         payload: {
-          titulo:         values.titulo,
-          descricao:      values.descricao ?? null,
-          tipo:           values.tipo,
-          urgencia:       values.urgencia,
-          valor_estimado: values.valor_estimado ?? null,
-          entity_id:      values.entity_id || null,
-          direcao_id:     values.direcao_id,
-          orcamentos:     values.orcamentos.map((o) => ({
+          titulo:     values.titulo,
+          descricao:  values.descricao ?? null,
+          tipo:       values.tipo,
+          urgencia:   values.urgencia,
+          direcao_id: values.direcao_id,
+          orcamentos: values.orcamentos.map((o) => ({
             fornecedor: o.fornecedor,
             valor:      o.valor,
             notas:      o.notas ?? null,
@@ -153,6 +181,19 @@ export function EditRequisitionPage() {
           })),
           anexos,
         },
+      })
+
+      await syncItems.mutateAsync({
+        requisitionId: id,
+        items: items.map((it, i) => ({
+          descricao:      it.descricao,
+          categoria:      it.categoria || null,
+          quantidade:     it.quantidade,
+          valor_unitario: it.valor_unitario,
+          entity_id:      it.entity_id || null,
+          notas:          it.notas || null,
+          ordem:          i + 1,
+        })),
       })
 
       toast.success("Requisição actualizada!")
@@ -164,7 +205,7 @@ export function EditRequisitionPage() {
     }
   }
 
-  if (loadingReq) {
+  if (loadingReq || loadingItems) {
     return (
       <PageWrapper titulo="Editar Requisição">
         <div className="flex justify-center py-12">
@@ -175,7 +216,6 @@ export function EditRequisitionPage() {
   }
 
   const isLoading = isSubmitting || uploading
-
   const reqTitulo = watch("titulo") || "Requisição"
 
   return (
@@ -191,7 +231,7 @@ export function EditRequisitionPage() {
         />
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-3xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
 
         {/* Informação Básica */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -257,33 +297,19 @@ export function EditRequisitionPage() {
           </div>
         </div>
 
-        {/* Fornecedor e Valor */}
+        {/* Itens */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Fornecedor e Valor</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Fornecedor</label>
-              <select
-                {...register("entity_id")}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-              >
-                <option value="">Nenhum</option>
-                {entities.map((e) => (
-                  <option key={e.id} value={e.id}>{e.nome}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Valor Estimado (MZN)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                {...register("valor_estimado", { valueAsNumber: true })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-          </div>
+          <h2 className="text-sm font-semibold text-gray-900 mb-1">Itens da Requisição *</h2>
+          <p className="text-xs text-gray-400 mb-4">
+            Adiciona cada produto ou serviço separadamente. Podes associar um fornecedor diferente a cada item.
+          </p>
+          <ItemsTable
+            items={items}
+            onChange={setItems}
+            entities={entities}
+            showErrors={showItemsErr}
+            error={itemsError ?? undefined}
+          />
         </div>
 
         {/* Orçamentos */}
@@ -334,7 +360,6 @@ export function EditRequisitionPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h2 className="text-sm font-semibold text-gray-900 mb-4">Anexos</h2>
 
-          {/* Anexos existentes */}
           {keepUrls.length > 0 && (
             <ul className="mb-3 space-y-1">
               {keepUrls.map((url, i) => {

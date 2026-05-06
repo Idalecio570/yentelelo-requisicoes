@@ -127,6 +127,24 @@ export interface OrcamentoItem {
 }
 
 // ---------------------------------------------------------------------------
+// Tabela: requisition_items
+// ---------------------------------------------------------------------------
+export interface RequisitionItem {
+  id:             string
+  requisition_id: string
+  descricao:      string
+  categoria:      string | null
+  quantidade:     number
+  valor_unitario: number
+  valor_total:    number
+  entity_id:      string | null
+  entity?:        Entity
+  notas:          string | null
+  ordem:          number
+  created_at:     string
+}
+
+// ---------------------------------------------------------------------------
 // Tabela: requisitions
 // ---------------------------------------------------------------------------
 export interface Requisition {
@@ -152,6 +170,7 @@ export interface Requisition {
   entity?:         Entity
   direcao?:        Direcao
   template?:       Template
+  items?:          RequisitionItem[]
 }
 
 // ---------------------------------------------------------------------------

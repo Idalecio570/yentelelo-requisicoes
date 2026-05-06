@@ -11,12 +11,15 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { useCreateRequisition } from "@/hooks/useRequisitions"
+import { useBulkInsertItems } from "@/hooks/useRequisitionItems"
 import { useEntities } from "@/hooks/useEntities"
 import { useTemplates } from "@/hooks/useTemplates"
 import { useDirecoes } from "@/hooks/useDirecoes"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import { formatCurrency } from "@/lib/utils"
+import { ItemsTable, newItemRow } from "@/components/requisitions/ItemsTable"
+import type { ItemRowData } from "@/components/requisitions/ItemsTable"
 import type { RequisitionUrgencia, RequisitionTipo } from "@/types"
 
 // ---------------------------------------------------------------------------
@@ -35,8 +38,6 @@ const schema = z.object({
   descricao:       z.string().optional(),
   tipo:            z.enum(["compra", "servico"]),
   urgencia:        z.enum(["normal", "urgente", "muito_urgente"]),
-  valor_estimado:  z.number({ error: "Valor inválido" }).positive().optional().nullable(),
-  entity_id:       z.string().optional().nullable(),
   direcao_id:      z.string().min(1, "Seleccione a direcção"),
   template_origem: z.string().optional().nullable(),
   orcamentos:      z.array(orcamentoSchema).max(3, "Máximo 3 orçamentos"),
@@ -101,7 +102,7 @@ const URGENCIA_CARDS: {
 // Progress bar
 // ---------------------------------------------------------------------------
 
-const STEP_LABELS = ["O que precisas?", "Valor e Fornecedor", "Revisão"]
+const STEP_LABELS = ["O que precisas?", "Itens e Anexos", "Revisão"]
 
 function ProgressBar({ step }: { step: number }) {
   return (
@@ -279,7 +280,7 @@ function Step1({
         />
       </div>
 
-      {/* Direcção (gestor_tics) */}
+      {/* Direcção (para roles sem direcção fixa) */}
       {isGestorTics ? (
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -307,18 +308,23 @@ function Step1({
 }
 
 // ---------------------------------------------------------------------------
-// Step 2
+// Step 2 — Itens, Orçamentos e Anexos
 // ---------------------------------------------------------------------------
 
 function Step2({
-  register, control, errors, entities, files, onFilesChange,
+  items, onItemsChange, entities, files, onFilesChange,
+  register, control, errors, itemsError, showItemsErrors,
 }: {
-  register:     ReturnType<typeof useForm<FormValues>>["register"]
-  control:      ReturnType<typeof useForm<FormValues>>["control"]
-  errors:       ReturnType<typeof useForm<FormValues>>["formState"]["errors"]
-  entities:     { id: string; nome: string }[]
-  files:        File[]
-  onFilesChange: (files: File[]) => void
+  items:           ItemRowData[]
+  onItemsChange:   (items: ItemRowData[]) => void
+  entities:        { id: string; nome: string; ativo: boolean; created_at: string; updated_at: string; tipo: import("@/types").EntityTipo | null; nuit: string | null; email: string | null; telefone: string | null; banco: string | null; conta_bancaria: string | null; morada: string | null }[]
+  files:           File[]
+  onFilesChange:   (files: File[]) => void
+  register:        ReturnType<typeof useForm<FormValues>>["register"]
+  control:         ReturnType<typeof useForm<FormValues>>["control"]
+  errors:          ReturnType<typeof useForm<FormValues>>["formState"]["errors"]
+  itemsError:      string | null
+  showItemsErrors: boolean
 }) {
   const { fields, append, remove } = useFieldArray({ control, name: "orcamentos" })
 
@@ -329,38 +335,23 @@ function Step2({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Valor + Fornecedor */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Valor Estimado (MZN)</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            {...register("valor_estimado", { valueAsNumber: true })}
-            placeholder="0.00"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
-          />
-          {errors.valor_estimado && (
-            <p className="mt-1 text-xs text-red-600">{errors.valor_estimado.message}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Fornecedor</label>
-          <select
-            {...register("entity_id")}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
-          >
-            <option value="">Nenhum</option>
-            {entities.map((e) => (
-              <option key={e.id} value={e.id}>{e.nome}</option>
-            ))}
-          </select>
-        </div>
+    <div className="space-y-8">
+      {/* Itens */}
+      <div>
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Itens da Requisição *</p>
+        <p className="text-xs text-gray-400 mb-4">
+          Adiciona cada produto ou serviço separadamente. Podes associar um fornecedor diferente a cada item.
+        </p>
+        <ItemsTable
+          items={items}
+          onChange={onItemsChange}
+          entities={entities}
+          showErrors={showItemsErrors}
+          error={itemsError ?? undefined}
+        />
       </div>
 
-      {/* Orçamentos */}
+      {/* Orçamentos comparativos */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className="text-xs font-medium text-gray-700">
@@ -463,7 +454,7 @@ function Step2({
 }
 
 // ---------------------------------------------------------------------------
-// Step 3 sub-components
+// Step 3 — Review
 // ---------------------------------------------------------------------------
 
 function ReviewRow({ label, value, step, onGoTo }: {
@@ -487,12 +478,9 @@ function ReviewRow({ label, value, step, onGoTo }: {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Step 3 — Review
-// ---------------------------------------------------------------------------
-
 function Step3({
   values,
+  items,
   files,
   entities,
   direcoes,
@@ -502,6 +490,7 @@ function Step3({
   isSubmitting,
 }: {
   values:       FormValues
+  items:        ItemRowData[]
   files:        File[]
   entities:     { id: string; nome: string }[]
   direcoes:     { id: string; nome: string }[]
@@ -510,8 +499,8 @@ function Step3({
   onSaveDraft:  () => void
   isSubmitting: boolean
 }) {
-  const supplierName = entities.find((e) => e.id === values.entity_id)?.nome
   const direcaoName  = direcoes.find((d) => d.id === values.direcao_id)?.nome
+  const grandTotal   = items.reduce((s, it) => s + it.quantidade * it.valor_unitario, 0)
 
   const urgenciaLabel: Record<string, string> = {
     normal: "Normal", urgente: "Urgente", muito_urgente: "Muito Urgente",
@@ -519,6 +508,7 @@ function Step3({
 
   return (
     <div className="space-y-6">
+      {/* Detalhes gerais */}
       <div className="bg-white rounded-lg border border-gray-200 p-5">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Detalhes</h3>
         <dl className="divide-y divide-gray-100">
@@ -532,39 +522,46 @@ function Step3({
         </dl>
       </div>
 
+      {/* Itens */}
       <div className="bg-white rounded-lg border border-gray-200 p-5">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Valor e Fornecedor</h3>
-        <dl className="divide-y divide-gray-100">
-          <ReviewRow
-            label="Valor est."
-            value={values.valor_estimado ? formatCurrency(values.valor_estimado) : null}
-            step={1}
-            onGoTo={onGoTo}
-          />
-          <ReviewRow label="Fornecedor" value={supplierName}  step={1} onGoTo={onGoTo} />
-        </dl>
-        {values.orcamentos.length > 0 && (
-          <div className="mt-3 space-y-1.5">
-            {values.orcamentos.map((o, i) => (
-              <div key={i} className="flex justify-between text-xs text-gray-600 py-1.5 border-t border-gray-100">
-                <span>{o.fornecedor}</span>
-                <span className="font-medium">{formatCurrency(o.valor)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {files.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <p className="text-xs text-gray-400 mb-1.5">{files.length} anexo(s)</p>
-            {files.map((f, i) => (
-              <p key={i} className="text-xs text-gray-600 truncate">{f.name}</p>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Itens ({items.length})
+          </h3>
+          <button type="button" onClick={() => onGoTo(1)} className="text-xs text-red-600 hover:underline">
+            Editar
+          </button>
+        </div>
+        <ItemsTable items={items} onChange={() => {}} entities={entities} readOnly />
       </div>
 
+      {/* Orçamentos */}
+      {values.orcamentos.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-5">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Orçamentos</h3>
+          {values.orcamentos.map((o, i) => (
+            <div key={i} className="flex justify-between text-sm py-1.5 border-b border-gray-50 last:border-0">
+              <span>{o.fornecedor}</span>
+              <span className="font-medium">{formatCurrency(o.valor)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {files.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-5">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            Anexos ({files.length})
+          </h3>
+          {files.map((f, i) => (
+            <p key={i} className="text-xs text-gray-600 truncate">{f.name}</p>
+          ))}
+        </div>
+      )}
+
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs text-amber-800">
-        Ao submeter, esta requisição será enviada para aprovação da Gestora de Escritório.
+        Ao submeter, esta requisição com {items.length} item(s) e total de{" "}
+        <strong>{formatCurrency(grandTotal)}</strong> será enviada para aprovação.
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -594,30 +591,37 @@ function Step3({
 // Wizard principal
 // ---------------------------------------------------------------------------
 
-// Step-level field groups for validation
-const STEP_FIELDS: (keyof FormValues)[][] = [
-  ["tipo", "urgencia", "titulo", "direcao_id"],
-  ["valor_estimado", "entity_id", "orcamentos"],
-  [],
-]
-
 export function RequisitionWizard() {
   const navigate    = useNavigate()
   const { profile } = useAuth()
   const createReq   = useCreateRequisition()
+  const bulkInsert  = useBulkInsertItems()
   const { data: entities  = [] } = useEntities()
   const { data: templates = [] } = useTemplates()
   const { data: direcoes  = [] } = useDirecoes()
 
-  const [step,      setStep]     = useState(0)
-  const [files,     setFiles]    = useState<File[]>([])
-  const [uploading, setUploading] = useState(false)
-  const [draftBanner, setDraftBanner] = useState<boolean>(() => {
+  const [step,           setStep]          = useState(0)
+  const [files,          setFiles]         = useState<File[]>([])
+  const [uploading,      setUploading]     = useState(false)
+  const [items,          setItems]         = useState<ItemRowData[]>(() => {
+    if (!profile) return [newItemRow(1)]
+    try {
+      const saved = localStorage.getItem(`yentelelo_draft_items_${profile.id}`)
+      if (saved) {
+        const parsed = JSON.parse(saved) as ItemRowData[]
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch { /* ignore */ }
+    return [newItemRow(1)]
+  })
+  const [itemsError,     setItemsError]    = useState<string | null>(null)
+  const [showItemsErr,   setShowItemsErr]  = useState(false)
+  const [draftBanner,    setDraftBanner]   = useState<boolean>(() => {
     if (!profile) return false
     return !!localStorage.getItem(`yentelelo_draft_${profile.id}`)
   })
 
-  const isGestorTics   = !profile?.direcao_id   // qualquer role sem direcção fixa vê o selector
+  const isGestorTics   = !profile?.direcao_id
   const defaultDirecao = isGestorTics ? "" : (profile?.direcao_id ?? "")
 
   const {
@@ -626,7 +630,6 @@ export function RequisitionWizard() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: (() => {
-      // Restore from localStorage if available
       if (profile) {
         const saved = localStorage.getItem(`yentelelo_draft_${profile.id}`)
         if (saved) {
@@ -641,8 +644,6 @@ export function RequisitionWizard() {
         descricao:       "",
         tipo:            "compra",
         urgencia:        "normal",
-        valor_estimado:  null,
-        entity_id:       null,
         direcao_id:      defaultDirecao,
         template_origem: null,
         orcamentos:      [],
@@ -652,36 +653,55 @@ export function RequisitionWizard() {
 
   const values = watch()
 
-  // Persist draft to localStorage on each change
   function saveDraftLocally() {
     if (!profile) return
     localStorage.setItem(`yentelelo_draft_${profile.id}`, JSON.stringify(values))
+    localStorage.setItem(`yentelelo_draft_items_${profile.id}`, JSON.stringify(items))
   }
 
   function clearDraft() {
     if (!profile) return
     localStorage.removeItem(`yentelelo_draft_${profile.id}`)
+    localStorage.removeItem(`yentelelo_draft_items_${profile.id}`)
   }
 
   function handleRestoreDraft() {
     setDraftBanner(false)
-    // Already loaded from localStorage in defaultValues
   }
 
   function handleDiscardDraft() {
     clearDraft()
     setDraftBanner(false)
+    setItems([newItemRow(1)])
     reset({
       titulo: "", descricao: "", tipo: "compra", urgencia: "normal",
-      valor_estimado: null, entity_id: null, direcao_id: defaultDirecao,
-      template_origem: null, orcamentos: [],
+      direcao_id: defaultDirecao, template_origem: null, orcamentos: [],
     })
   }
 
   async function goToStep(target: number) {
     if (target > step) {
-      const valid = await trigger(STEP_FIELDS[step] as never)
-      if (!valid) return
+      if (step === 0) {
+        const valid = await trigger(["tipo", "urgencia", "titulo", "direcao_id"] as never)
+        if (!valid) return
+      }
+      if (step === 1) {
+        if (items.length === 0) {
+          setItemsError("Adicione pelo menos 1 item antes de avançar.")
+          setShowItemsErr(true)
+          return
+        }
+        const invalid = items.some(
+          (it) => !it.descricao.trim() || it.valor_unitario <= 0 || it.quantidade <= 0
+        )
+        if (invalid) {
+          setItemsError("Corrija os itens assinalados a vermelho antes de avançar.")
+          setShowItemsErr(true)
+          return
+        }
+        setItemsError(null)
+        setShowItemsErr(false)
+      }
     }
     setStep(target)
     saveDraftLocally()
@@ -708,6 +728,13 @@ export function RequisitionWizard() {
     const valid = await trigger()
     if (!valid) return
 
+    if (items.length === 0 || items.some((it) => !it.descricao.trim() || it.valor_unitario <= 0 || it.quantidade <= 0)) {
+      setItemsError("Corrija os itens antes de submeter.")
+      setShowItemsErr(true)
+      setStep(1)
+      return
+    }
+
     setUploading(true)
     try {
       const req = await createReq.mutateAsync({
@@ -715,8 +742,8 @@ export function RequisitionWizard() {
         descricao:       values.descricao ?? null,
         tipo:            values.tipo,
         urgencia:        values.urgencia,
-        valor_estimado:  values.valor_estimado ?? null,
-        entity_id:       values.entity_id || null,
+        valor_estimado:  null,
+        entity_id:       null,
         criado_por:      profile.id,
         direcao_id:      values.direcao_id,
         template_origem: values.template_origem ?? null,
@@ -726,6 +753,19 @@ export function RequisitionWizard() {
           valor:      o.valor,
           notas:      o.notas ?? null,
           anexo_url:  null,
+        })),
+      })
+
+      await bulkInsert.mutateAsync({
+        requisitionId: req.id,
+        items: items.map((it, i) => ({
+          descricao:      it.descricao,
+          categoria:      it.categoria || null,
+          quantidade:     it.quantidade,
+          valor_unitario: it.valor_unitario,
+          entity_id:      it.entity_id || null,
+          notas:          it.notas || null,
+          ordem:          i + 1,
         })),
       })
 
@@ -761,8 +801,8 @@ export function RequisitionWizard() {
         descricao:       values.descricao ?? null,
         tipo:            values.tipo ?? "compra",
         urgencia:        values.urgencia ?? "normal",
-        valor_estimado:  values.valor_estimado ?? null,
-        entity_id:       values.entity_id || null,
+        valor_estimado:  null,
+        entity_id:       null,
         criado_por:      profile.id,
         direcao_id:      direcao,
         template_origem: values.template_origem ?? null,
@@ -781,7 +821,6 @@ export function RequisitionWizard() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Draft recovery banner */}
       {draftBanner && (
         <div className="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
           <p className="flex-1 text-sm text-blue-800">
@@ -818,17 +857,22 @@ export function RequisitionWizard() {
         )}
         {step === 1 && (
           <Step2
-            register={register}
-            control={control}
-            errors={errors}
+            items={items}
+            onItemsChange={setItems}
             entities={entities}
             files={files}
             onFilesChange={setFiles}
+            register={register}
+            control={control}
+            errors={errors}
+            itemsError={itemsError}
+            showItemsErrors={showItemsErr}
           />
         )}
         {step === 2 && (
           <Step3
             values={values}
+            items={items}
             files={files}
             entities={entities}
             direcoes={direcoes}
@@ -839,7 +883,6 @@ export function RequisitionWizard() {
           />
         )}
 
-        {/* Navigation (steps 0 and 1) */}
         {step < 2 && (
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
             {step > 0 ? (

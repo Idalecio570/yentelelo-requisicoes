@@ -88,7 +88,7 @@ export function useRequisitionsByPeriod(start: string, end: string) {
     queryFn: async (): Promise<Requisition[]> => {
       const { data, error } = await supabase
         .from("requisitions")
-        .select("*, profile:profiles(nome_completo), entity:entities(nome), direcao:direcoes(nome)")
+        .select("*, profile:profiles(nome_completo), entity:entities(nome), direcao:direcoes(nome), items:requisition_items(id,descricao,categoria,quantidade,valor_unitario,valor_total,entity_id,notas,ordem,entity:entities(nome))")
         .gte("created_at", start)
         .lte("created_at", end + "T23:59:59")
         .order("created_at", { ascending: false })

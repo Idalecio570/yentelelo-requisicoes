@@ -108,7 +108,7 @@ async function exportExcel(rows: ReturnType<typeof useRequisitionsByPeriod>["dat
   if (!rows || rows.length === 0) return
   const XLSX = await import("xlsx")
   const wsData = [
-    ["ID","Título","Tipo","Urgência","Direcção","Fornecedor","Valor Estimado","Total Pago","Status","Criado Por","Data Criação","Data Atualização"],
+    ["ID","Título","Tipo","Urgência","Direcção","Fornecedor","Valor Estimado","Total Pago","Nº de Itens","Status","Criado Por","Data Criação","Data Atualização"],
     ...rows.map((r) => [
       r.id,
       r.titulo,
@@ -118,6 +118,7 @@ async function exportExcel(rows: ReturnType<typeof useRequisitionsByPeriod>["dat
       r.entity?.nome ?? "",
       r.valor_estimado ?? "",
       r.total_paid ?? 0,
+      r.items?.length ?? 0,
       STATUS_LABELS[r.status as RequisitionStatus] ?? r.status,
       r.profile?.nome_completo ?? "",
       formatDate(r.created_at),
@@ -128,6 +129,41 @@ async function exportExcel(rows: ReturnType<typeof useRequisitionsByPeriod>["dat
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, "Requisições")
   XLSX.writeFile(wb, `requisicoes_yentelelo_${todayISO()}.xlsx`)
+}
+
+async function exportExcelDetalhado(rows: ReturnType<typeof useRequisitionsByPeriod>["data"]) {
+  if (!rows || rows.length === 0) return
+  const XLSX = await import("xlsx")
+  const header = [
+    "Requisição ID","Título","Tipo","Urgência","Direcção","Estado","Data Criação",
+    "Nº Item","Descrição Item","Categoria","Fornecedor Item","Quantidade","Val. Unit. (MZN)","Total Item (MZN)",
+  ]
+  const body = rows.flatMap((r) => {
+    const base = [
+      r.id, r.titulo, r.tipo ?? "",
+      URGENCIA_LABELS[r.urgencia as RequisitionUrgencia] ?? r.urgencia,
+      r.direcao?.nome ?? "",
+      STATUS_LABELS[r.status as RequisitionStatus] ?? r.status,
+      formatDate(r.created_at),
+    ]
+    if (r.items && r.items.length > 0) {
+      return r.items.map((it, idx) => [
+        ...base,
+        idx + 1,
+        it.descricao,
+        it.categoria ?? "",
+        it.entity?.nome ?? "",
+        it.quantidade,
+        it.valor_unitario,
+        it.valor_total,
+      ])
+    }
+    return [[...base, 0, "", "", "", "", "", ""]]
+  })
+  const ws = XLSX.utils.aoa_to_sheet([header, ...body])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, "Itens por Requisição")
+  XLSX.writeFile(wb, `requisicoes_detalhado_${todayISO()}.xlsx`)
 }
 
 export function ReportsPage() {
@@ -223,6 +259,13 @@ export function ReportsPage() {
               className="inline-flex items-center gap-2 px-3 py-[7px] text-[13px] rounded-[8px] hover:bg-[#F8FAFC] disabled:opacity-40 transition-colors" style={{ border: "1px solid #E6E8EC", color: "#475569" }}
             >
               <FileSpreadsheet size={13} /> Excel
+            </button>
+            <button
+              onClick={() => exportExcelDetalhado(rows)}
+              disabled={loadingRows}
+              className="inline-flex items-center gap-2 px-3 py-[7px] text-[13px] rounded-[8px] hover:bg-[#F8FAFC] disabled:opacity-40 transition-colors" style={{ border: "1px solid #E6E8EC", color: "#475569" }}
+            >
+              <FileSpreadsheet size={13} /> Detalhado
             </button>
           </div>
         </div>
