@@ -14,8 +14,10 @@ import { useEntities } from "@/hooks/useEntities"
 import { useDirecoes } from "@/hooks/useDirecoes"
 import { ItemsTable, newItemRow } from "@/components/requisitions/ItemsTable"
 import type { ItemRowData } from "@/components/requisitions/ItemsTable"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { supabase } from "@/lib/supabase"
 import { URGENCIA_LABELS } from "@/lib/constants"
+import type { RequisitionTipo, RequisitionUrgencia } from "@/types"
 
 const orcamentoSchema = z.object({
   fornecedor: z.string().min(1, "Obrigatório"),
@@ -64,6 +66,7 @@ export function EditRequisitionPage() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -258,38 +261,40 @@ export function EditRequisitionPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Tipo <span className="text-red-500">*</span></label>
-                <select
-                  {...register("tipo")}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-                >
-                  <option value="compra">Compra</option>
-                  <option value="servico">Serviço</option>
-                </select>
+                <Select value={watch("tipo")} onValueChange={(v) => setValue("tipo", v as RequisitionTipo)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="compra">Compra</SelectItem>
+                    <SelectItem value="servico">Serviço</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Urgência <span className="text-red-500">*</span></label>
-                <select
-                  {...register("urgencia")}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-                >
-                  {(["normal", "urgente", "muito_urgente"] as const).map((u) => (
-                    <option key={u} value={u}>{URGENCIA_LABELS[u]}</option>
-                  ))}
-                </select>
+                <Select value={watch("urgencia")} onValueChange={(v) => setValue("urgencia", v as RequisitionUrgencia)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(["normal", "urgente", "muito_urgente"] as const).map((u) => (
+                      <SelectItem key={u} value={u}>{URGENCIA_LABELS[u]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             {isGestorTics && (
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Direcção <span className="text-red-500">*</span></label>
-                <select
-                  {...register("direcao_id")}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-                >
-                  <option value="">Seleccione a direcção</option>
-                  {direcoes.map((d) => (
-                    <option key={d.id} value={d.id}>{d.nome}</option>
-                  ))}
-                </select>
+                <Select value={watch("direcao_id") ?? ""} onValueChange={(v) => setValue("direcao_id", v)}>
+                  <SelectTrigger className={errors.direcao_id ? "border-red-400 bg-red-50" : ""}>
+                    <SelectValue placeholder="Seleccione a direcção" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Seleccione a direcção</SelectItem>
+                    {direcoes.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.direcao_id && <p className="mt-1 text-xs text-red-600">{errors.direcao_id.message}</p>}
               </div>
             )}

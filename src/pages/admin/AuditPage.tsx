@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/shared/Breadcrumb"
 import { supabase } from "@/lib/supabase"
 import { QUERY_KEYS } from "@/lib/constants"
 import { formatDate } from "@/lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Approval, ApprovalDecisao } from "@/types"
 
 const DECISAO_BADGE: Record<ApprovalDecisao, string> = {
@@ -114,16 +115,15 @@ export function AuditPage() {
           </div>
           <div>
             <label className={labelCls}>Decisão</label>
-            <select
-              value={decisao}
-              onChange={(e) => setDecisao(e.target.value as ApprovalDecisao | "")}
-              className={selectCls}
-            >
-              <option value="">Todas</option>
-              <option value="aprovado">Aprovado</option>
-              <option value="rejeitado">Rejeitado</option>
-              <option value="devolvido">Devolvido</option>
-            </select>
+            <Select value={decisao} onValueChange={(v) => setDecisao(v as ApprovalDecisao | "")}>
+              <SelectTrigger className={selectCls}><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="aprovado">Aprovado</SelectItem>
+                <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                <SelectItem value="devolvido">Devolvido</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <button
             onClick={exportExcel}

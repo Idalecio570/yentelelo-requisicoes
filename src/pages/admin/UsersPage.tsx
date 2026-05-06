@@ -9,6 +9,7 @@ import { useDirecoes } from "@/hooks/useDirecoes"
 import { formatDate } from "@/lib/utils"
 import { ROLES, ROLE_LABELS, ROLE_AVATAR_CLASSES, DIRECAO_LABELS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Profile, Role, DirecaoCodigo } from "@/types"
 
 function getInitials(name: string) {
@@ -90,25 +91,34 @@ export function UsersPage() {
           </div>
           <div>
             <label className={labelCls}>Função</label>
-            <select value={role} onChange={(e) => setRole(e.target.value as Role | "")} className={selectCls}>
-              <option value="">Todas</option>
-              {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-            </select>
+            <Select value={role} onValueChange={(v) => setRole(v as Role | "")}>
+              <SelectTrigger className={selectCls}><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas</SelectItem>
+                {ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className={labelCls}>Direcção</label>
-            <select value={direcaoId} onChange={(e) => setDirecaoId(e.target.value)} className={selectCls}>
-              <option value="">Todas</option>
-              {direcoes.map((d) => <option key={d.id} value={d.id}>{d.nome}</option>)}
-            </select>
+            <Select value={direcaoId} onValueChange={setDirecaoId}>
+              <SelectTrigger className={selectCls}><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas</SelectItem>
+                {direcoes.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className={labelCls}>Estado</label>
-            <select value={ativo} onChange={(e) => setAtivo(e.target.value as "" | "true" | "false")} className={selectCls}>
-              <option value="">Todos</option>
-              <option value="true">Activos</option>
-              <option value="false">Inactivos</option>
-            </select>
+            <Select value={ativo} onValueChange={(v) => setAtivo(v as "" | "true" | "false")}>
+              <SelectTrigger className={selectCls}><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="true">Activos</SelectItem>
+                <SelectItem value="false">Inactivos</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <button
             onClick={() => setModal({ open: true })}
