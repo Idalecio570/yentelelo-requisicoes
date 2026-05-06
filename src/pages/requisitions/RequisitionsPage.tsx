@@ -7,7 +7,8 @@ import { ErrorState } from "@/components/shared/ErrorState"
 import { useRequisitions } from "@/hooks/useRequisitions"
 import { useAuth } from "@/hooks/useAuth"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { URGENCIA_LABELS, REQUISITION_STATUSES, REQUISITION_URGENCIAS } from "@/lib/constants"
+import { URGENCIA_LABELS, REQUISITION_STATUSES, REQUISITION_URGENCIAS, STATUS_LABELS } from "@/lib/constants"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { RequisitionStatus, RequisitionUrgencia, RequisitionTipo } from "@/types"
 
 const PAGE_SIZE = 10
@@ -123,37 +124,34 @@ export function RequisitionsPage() {
             />
           </div>
 
-          <select
-            value={status}
-            onChange={(e) => { setStatus(e.target.value as RequisitionStatus | ""); setPage(1) }}
-            className={inputCls}
-          >
-            <option value="">Todos os estados</option>
-            {REQUISITION_STATUSES.filter((s) => s !== "rascunho").map((s) => (
-              <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
-            ))}
-          </select>
+          <Select value={status} onValueChange={(v) => { setStatus(v as RequisitionStatus | ""); setPage(1) }}>
+            <SelectTrigger><SelectValue placeholder="Todos os estados" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos os estados</SelectItem>
+              {REQUISITION_STATUSES.filter((s) => s !== "rascunho").map((s) => (
+                <SelectItem key={s} value={s}>{STATUS_LABELS[s] ?? s.replace(/_/g, " ")}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <select
-            value={tipo}
-            onChange={(e) => { setTipo(e.target.value as RequisitionTipo | ""); setPage(1) }}
-            className={inputCls}
-          >
-            <option value="">Todos os tipos</option>
-            <option value="compra">Compra</option>
-            <option value="servico">Serviço</option>
-          </select>
+          <Select value={tipo} onValueChange={(v) => { setTipo(v as RequisitionTipo | ""); setPage(1) }}>
+            <SelectTrigger><SelectValue placeholder="Todos os tipos" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos os tipos</SelectItem>
+              <SelectItem value="compra">Compra</SelectItem>
+              <SelectItem value="servico">Serviço</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={urgencia}
-            onChange={(e) => { setUrgencia(e.target.value as RequisitionUrgencia | ""); setPage(1) }}
-            className={inputCls}
-          >
-            <option value="">Todas as urgências</option>
-            {REQUISITION_URGENCIAS.map((u) => (
-              <option key={u} value={u}>{URGENCIA_LABELS[u]}</option>
-            ))}
-          </select>
+          <Select value={urgencia} onValueChange={(v) => { setUrgencia(v as RequisitionUrgencia | ""); setPage(1) }}>
+            <SelectTrigger><SelectValue placeholder="Todas as urgências" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todas as urgências</SelectItem>
+              {REQUISITION_URGENCIAS.map((u) => (
+                <SelectItem key={u} value={u}>{URGENCIA_LABELS[u]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <div className="flex gap-2">
             <input

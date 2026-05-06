@@ -7,6 +7,7 @@ import { useAllPayments } from "@/hooks/usePayments"
 import { useDirecoes } from "@/hooks/useDirecoes"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { cn } from "@/lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { PaymentStatus } from "@/types"
 
 const payStatusLabels: Record<PaymentStatus, string> = {
@@ -90,19 +91,25 @@ export function PaymentsPage() {
         <div className="flex flex-wrap gap-3 items-end">
           <div>
             <label className={labelCls}>Direcção</label>
-            <select value={direcaoId} onChange={(e) => setDirecaoId(e.target.value)} className={selectCls}>
-              <option value="">Todas</option>
-              {direcoes.map((d) => <option key={d.id} value={d.id}>{d.nome}</option>)}
-            </select>
+            <Select value={direcaoId} onValueChange={setDirecaoId}>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas</SelectItem>
+                {direcoes.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className={labelCls}>Estado de Pagamento</label>
-            <select value={payStatus} onChange={(e) => setPayStatus(e.target.value)} className={selectCls}>
-              <option value="">Todos</option>
-              {(["sem_pagamento","pendente","parcial","concluida"] as PaymentStatus[]).map((s) => (
-                <option key={s} value={s}>{payStatusLabels[s]}</option>
-              ))}
-            </select>
+            <Select value={payStatus} onValueChange={setPayStatus}>
+              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                {(["sem_pagamento","pendente","parcial","concluida"] as PaymentStatus[]).map((s) => (
+                  <SelectItem key={s} value={s}>{payStatusLabels[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className={labelCls}>Data início</label>

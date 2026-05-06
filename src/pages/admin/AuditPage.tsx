@@ -116,7 +116,7 @@ export function AuditPage() {
           <div>
             <label className={labelCls}>Decisão</label>
             <Select value={decisao} onValueChange={(v) => setDecisao(v as ApprovalDecisao | "")}>
-              <SelectTrigger className={selectCls}><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todas</SelectItem>
                 <SelectItem value="aprovado">Aprovado</SelectItem>

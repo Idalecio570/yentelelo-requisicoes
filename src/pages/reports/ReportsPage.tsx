@@ -11,6 +11,7 @@ import { useRequisitionStats, useRequisitionsByPeriod } from "@/hooks/useReports
 import { useDirecoes } from "@/hooks/useDirecoes"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { STATUS_LABELS, URGENCIA_LABELS } from "@/lib/constants"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { RequisitionStatus, RequisitionUrgencia } from "@/types"
 
 function todayISO() { return new Date().toISOString().split("T")[0] ?? "" }
@@ -226,18 +227,24 @@ export function ReportsPage() {
           </div>
           <div>
             <label className={labelCls}>Direcção</label>
-            <select value={direcaoId} onChange={(e) => setDirecaoId(e.target.value)} className={selectCls}>
-              <option value="">Todas</option>
-              {direcoes.map((d) => <option key={d.id} value={d.id}>{d.nome}</option>)}
-            </select>
+            <Select value={direcaoId} onValueChange={setDirecaoId}>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas</SelectItem>
+                {direcoes.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className={labelCls}>Tipo</label>
-            <select value={tipo} onChange={(e) => setTipo(e.target.value)} className={selectCls}>
-              <option value="">Todos</option>
-              <option value="compra">Compra</option>
-              <option value="servico">Serviço</option>
-            </select>
+            <Select value={tipo} onValueChange={setTipo}>
+              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="compra">Compra</SelectItem>
+                <SelectItem value="servico">Serviço</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <button
             onClick={applyFilters}

@@ -92,7 +92,7 @@ export function UsersPage() {
           <div>
             <label className={labelCls}>Função</label>
             <Select value={role} onValueChange={(v) => setRole(v as Role | "")}>
-              <SelectTrigger className={selectCls}><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todas</SelectItem>
                 {ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>)}
@@ -102,7 +102,7 @@ export function UsersPage() {
           <div>
             <label className={labelCls}>Direcção</label>
             <Select value={direcaoId} onValueChange={setDirecaoId}>
-              <SelectTrigger className={selectCls}><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todas</SelectItem>
                 {direcoes.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>)}
@@ -112,7 +112,7 @@ export function UsersPage() {
           <div>
             <label className={labelCls}>Estado</label>
             <Select value={ativo} onValueChange={(v) => setAtivo(v as "" | "true" | "false")}>
-              <SelectTrigger className={selectCls}><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todos</SelectItem>
                 <SelectItem value="true">Activos</SelectItem>
