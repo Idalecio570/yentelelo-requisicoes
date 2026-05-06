@@ -4,6 +4,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 import { formatCurrency } from "@/lib/utils"
 import { ITEM_CATEGORIAS, QUERY_KEYS } from "@/lib/constants"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Combobox } from "@/components/ui/combobox"
 import { SupplierModal } from "@/components/suppliers/SupplierModal"
 import type { Entity } from "@/types"
 
@@ -14,7 +16,7 @@ export interface ItemRowData {
   quantidade:     number
   valor_unitario: number
   entity_id:      string
-  entityName?:    string  // pré-resolvido via JOIN, usado no modo leitura
+  entityName?:    string
   notas:          string
   ordem:          number
 }
@@ -51,20 +53,14 @@ const labelCls = "block text-[11px] font-semibold uppercase tracking-wide text-g
 const inputCls =
   "w-full px-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-colors placeholder:text-gray-300"
 
-// Valor sentinela para a opção especial no select
-const CREATE_SENTINEL = "__create_new__"
-
 export function ItemsTable({
   items, onChange, entities, readOnly = false, showErrors = false, error,
 }: ItemsTableProps) {
-  // Novos fornecedores criados inline ficam aqui até o pai re-carregar
   const [extraEntities, setExtraEntities] = useState<EntityLike[]>([])
-  // Qual item disparou o modal de criação
-  const [pendingKey, setPendingKey] = useState<string | null>(null)
-  const [createOpen, setCreateOpen] = useState(false)
+  const [pendingKey,    setPendingKey]    = useState<string | null>(null)
+  const [createOpen,    setCreateOpen]    = useState(false)
   const qc = useQueryClient()
 
-  // Lista completa: fornecedores do pai + recém-criados (sem duplicados)
   const allEntities: EntityLike[] = [
     ...entities,
     ...extraEntities.filter((e) => !entities.some((x) => x.id === e.id)),
@@ -85,30 +81,12 @@ export function ItemsTable({
     onChange([...items, newItemRow(items.length + 1)])
   }
 
-  function handleSelectChange(key: string, value: string) {
-    if (value === CREATE_SENTINEL) {
-      setPendingKey(key)
-      setCreateOpen(true)
-      // Não altera entity_id — o select volta ao valor anterior no próximo render
-    } else {
-      update(key, { entity_id: value })
-    }
-  }
-
   function handleSupplierCreated(entity: Entity) {
-    // Adiciona imediatamente à lista local
     setExtraEntities((prev) => [...prev, { id: entity.id, nome: entity.nome }])
-    // Selecciona no item que abriu o modal
     if (pendingKey) update(pendingKey, { entity_id: entity.id })
     setPendingKey(null)
     setCreateOpen(false)
-    // Invalida cache para o pai actualizar a sua lista de entidades
     void qc.invalidateQueries({ queryKey: QUERY_KEYS.entities })
-  }
-
-  function handleCreateClose() {
-    setPendingKey(null)
-    setCreateOpen(false)
   }
 
   // ── Modo leitura ────────────────────────────────────────────────────────────
@@ -138,9 +116,7 @@ export function ItemsTable({
                   <span>·</span>
                   <span className="tabular-nums">{it.quantidade} × {formatCurrency(it.valor_unitario)}</span>
                 </p>
-                {it.notas && (
-                  <p className="text-xs text-gray-400 mt-1 italic">{it.notas}</p>
-                )}
+                {it.notas && <p className="text-xs text-gray-400 mt-1 italic">{it.notas}</p>}
               </div>
               <span className="shrink-0 text-sm font-semibold text-gray-900 tabular-nums">
                 {formatCurrency(lineTotal)}
@@ -148,7 +124,6 @@ export function ItemsTable({
             </div>
           )
         })}
-
         <div className="flex justify-end pt-3">
           <div className="text-right">
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Total Geral</p>
@@ -159,7 +134,12 @@ export function ItemsTable({
     )
   }
 
-  // ── Modo edição — um cartão por item ────────────────────────────────────────
+  // ── Modo edição ─────────────────────────────────────────────────────────────
+  const supplierOptions = [
+    { value: "", label: "— Nenhum —" },
+    ...allEntities.map((e) => ({ value: e.id, label: e.nome })),
+  ]
+
   return (
     <>
       <div>
@@ -185,7 +165,7 @@ export function ItemsTable({
                   invalid ? "border-red-300 bg-red-50/30" : "border-gray-200 bg-white"
                 )}
               >
-                {/* Cabeçalho do cartão */}
+                {/* Cabeçalho */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-[11px] font-bold text-gray-500">
@@ -224,36 +204,36 @@ export function ItemsTable({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>Categoria</label>
-                      <select
+                      <Select
                         value={it.categoria}
-                        onChange={(e) => update(it._key, { categoria: e.target.value })}
-                        className={cn(inputCls, "border-gray-300")}
+                        onValueChange={(v) => update(it._key, { categoria: v })}
                       >
-                        <option value="">— Seleccionar —</option>
-                        {ITEM_CATEGORIAS.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="— Seleccionar —" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">— Seleccionar —</SelectItem>
+                          {ITEM_CATEGORIAS.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div>
                       <label className={labelCls}>Fornecedor</label>
-                      <select
+                      <Combobox
                         value={it.entity_id}
-                        onChange={(e) => handleSelectChange(it._key, e.target.value)}
-                        className={cn(inputCls, "border-gray-300")}
-                      >
-                        <option value="">— Nenhum —</option>
-                        {allEntities.map((e) => (
-                          <option key={e.id} value={e.id}>{e.nome}</option>
-                        ))}
-                        <option disabled>──────────────</option>
-                        <option value={CREATE_SENTINEL}>+ Criar novo fornecedor</option>
-                      </select>
+                        onValueChange={(v) => update(it._key, { entity_id: v })}
+                        options={supplierOptions}
+                        placeholder="— Nenhum —"
+                        onCreateNew={() => { setPendingKey(it._key); setCreateOpen(true) }}
+                        createLabel="+ Criar novo fornecedor"
+                      />
                     </div>
                   </div>
 
-                  {/* Quantidade + Valor Unitário + Total */}
+                  {/* Quantidade + Valor + Total */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <div>
                       <label className={labelCls}>Quantidade *</label>
@@ -279,7 +259,7 @@ export function ItemsTable({
                     </div>
                     <div className="col-span-2 sm:col-span-1">
                       <label className={labelCls}>Total do Item</label>
-                      <div className="flex items-center justify-end h-[38px] px-3 rounded-lg bg-gray-50 border border-gray-200">
+                      <div className="flex items-center justify-end h-9 px-3 rounded-lg bg-gray-50 border border-gray-200">
                         <span className="text-sm font-bold tabular-nums text-gray-900">
                           {formatCurrency(lineTotal)}
                         </span>
@@ -306,7 +286,6 @@ export function ItemsTable({
           })}
         </div>
 
-        {/* Rodapé */}
         <div className="mt-4 flex items-center justify-between">
           <button
             type="button"
@@ -315,7 +294,6 @@ export function ItemsTable({
           >
             <Plus size={14} /> Adicionar Item
           </button>
-
           <div className="text-right">
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Total Geral</p>
             <p className="text-xl font-bold text-gray-900 tabular-nums mt-0.5">{formatCurrency(grandTotal)}</p>
@@ -323,10 +301,9 @@ export function ItemsTable({
         </div>
       </div>
 
-      {/* Modal de criação de fornecedor */}
       <SupplierModal
         open={createOpen}
-        onClose={handleCreateClose}
+        onClose={() => { setPendingKey(null); setCreateOpen(false) }}
         onCreated={handleSupplierCreated}
       />
     </>

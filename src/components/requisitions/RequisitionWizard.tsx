@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils"
 import { formatCurrency } from "@/lib/utils"
 import { ItemsTable, newItemRow } from "@/components/requisitions/ItemsTable"
 import type { ItemRowData } from "@/components/requisitions/ItemsTable"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { RequisitionUrgencia, RequisitionTipo } from "@/types"
 
 // ---------------------------------------------------------------------------
@@ -178,16 +179,17 @@ function Step1({
           <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
             Usar um modelo anterior?
           </label>
-          <select
-            value={template ?? ""}
-            onChange={(e) => handleTemplateChange(e.target.value)}
-            className="w-full max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
-          >
-            <option value="">Sem template</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>{t.nome}</option>
-            ))}
-          </select>
+          <Select value={template ?? ""} onValueChange={handleTemplateChange}>
+            <SelectTrigger className="max-w-xs">
+              <SelectValue placeholder="Sem template" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Sem template</SelectItem>
+              {templates.map((t) => (
+                <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -286,18 +288,20 @@ function Step1({
           <label className="block text-xs font-medium text-gray-700 mb-1">
             Direcção <span className="text-red-500">*</span>
           </label>
-          <select
-            {...register("direcao_id")}
-            className={cn(
-              "w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-red-500",
-              errors.direcao_id ? "border-red-400 bg-red-50" : "border-gray-300"
-            )}
+          <Select
+            value={watch("direcao_id") ?? ""}
+            onValueChange={(v) => setValue("direcao_id", v)}
           >
-            <option value="">Seleccione a direcção</option>
-            {direcoes.map((d) => (
-              <option key={d.id} value={d.id}>{d.nome}</option>
-            ))}
-          </select>
+            <SelectTrigger className={errors.direcao_id ? "border-red-400 bg-red-50" : ""}>
+              <SelectValue placeholder="Seleccione a direcção" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Seleccione a direcção</SelectItem>
+              {direcoes.map((d) => (
+                <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.direcao_id && <p className="mt-1 text-xs text-red-600">{errors.direcao_id.message}</p>}
         </div>
       ) : (

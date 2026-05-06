@@ -9,6 +9,7 @@ import { useCreateUser, useUpdateUser, checkEmailExists } from "@/hooks/useUsers
 import { useDirecoes } from "@/hooks/useDirecoes"
 import { cn } from "@/lib/utils"
 import { ROLES, ROLE_LABELS } from "@/lib/constants"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Profile, Role } from "@/types"
 
 // ---------------------------------------------------------------------------
@@ -227,23 +228,36 @@ export function UserModal({ open, onClose, user }: UserModalProps) {
 
           <div>
             <Field label="Função" error={(errors as { role?: { message?: string } }).role?.message} required>
-              <select {...register("role")} className={inputCls()}>
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                ))}
-              </select>
+              <Select value={roleWatch} onValueChange={(v) => setValue("role", v as Role)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLES.map((r) => (
+                    <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </div>
 
           <div>
             {showDirecaoSelect ? (
               <Field label="Direcção" error={(errors as { direcao_id?: { message?: string } }).direcao_id?.message}>
-                <select {...register("direcao_id")} className={inputCls()}>
-                  <option value="">— Seleccione —</option>
-                  {direcoes.map((d) => (
-                    <option key={d.id} value={d.id}>{d.nome}</option>
-                  ))}
-                </select>
+                <Select
+                  value={watch("direcao_id") ?? ""}
+                  onValueChange={(v) => setValue("direcao_id", v || null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="— Seleccione —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">— Seleccione —</SelectItem>
+                    {direcoes.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
             ) : (
               <div>
