@@ -25,12 +25,8 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
 
   if (!session) return <Navigate to="/login" replace />
 
-  // Sessão existe mas perfil ainda não carregou (fetch em curso)
-  if (!profile) return <Spinner />
-
-  // Sessão existe, perfil carregado, mas o perfil não consta da tabela profiles
-  // (utilizador auth sem perfil — edge case)
-  if (session && !profile) {
+  // Sessão existe mas sem perfil na tabela profiles (utilizador auth sem registo)
+  if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">

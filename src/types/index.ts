@@ -224,7 +224,7 @@ export type RequisitionInsert = Pick<
 >
 
 export type ProfileUpdate = Partial<
-  Pick<Profile, "nome_completo" | "email" | "role" | "direcao_id" | "ativo">
+  Pick<Profile, "nome_completo" | "email" | "role" | "direcao_id" | "ativo" | "notif_email">
 >
 
 export type ApprovalInsert = Pick<

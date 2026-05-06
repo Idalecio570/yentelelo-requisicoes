@@ -56,7 +56,7 @@ export function useCreateSupplier() {
       return data as Entity
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["suppliers"] })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.suppliers() })
     },
   })
 }
@@ -75,7 +75,7 @@ export function useUpdateSupplier() {
       return data as Entity
     },
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ["suppliers"] })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.suppliers() })
       qc.invalidateQueries({ queryKey: QUERY_KEYS.supplier(id) })
     },
   })
@@ -92,7 +92,7 @@ export function useToggleSupplierStatus() {
       if (error) throw error
     },
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ["suppliers"] })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.suppliers() })
       qc.invalidateQueries({ queryKey: QUERY_KEYS.supplier(id) })
     },
   })
