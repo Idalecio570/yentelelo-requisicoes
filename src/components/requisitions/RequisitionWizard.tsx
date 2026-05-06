@@ -313,7 +313,7 @@ function Step1({
 
 function Step2({
   items, onItemsChange, entities, files, onFilesChange,
-  register, control, errors, itemsError, showItemsErrors,
+  register, control, itemsError, showItemsErrors,
 }: {
   items:           ItemRowData[]
   onItemsChange:   (items: ItemRowData[]) => void
@@ -322,7 +322,6 @@ function Step2({
   onFilesChange:   (files: File[]) => void
   register:        ReturnType<typeof useForm<FormValues>>["register"]
   control:         ReturnType<typeof useForm<FormValues>>["control"]
-  errors:          ReturnType<typeof useForm<FormValues>>["formState"]["errors"]
   itemsError:      string | null
   showItemsErrors: boolean
 }) {
@@ -864,7 +863,6 @@ export function RequisitionWizard() {
             onFilesChange={setFiles}
             register={register}
             control={control}
-            errors={errors}
             itemsError={itemsError}
             showItemsErrors={showItemsErr}
           />
