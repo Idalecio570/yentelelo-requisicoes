@@ -30,17 +30,9 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Configurar chave SSH
-        env:
-          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          python3 -c "
-          import os
-          key = os.environ['SSH_KEY'].replace('\r\n', '\n').replace('\r', '\n').strip()
-          if not key.endswith('\n'):
-              key += '\n'
-          open('/home/runner/.ssh/deploy_key', 'w', newline='').write(key)
-          "
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
