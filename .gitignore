@@ -5,3 +5,5 @@ dist/
 .env.production
 *.log
 supabase/.temp/
+deploy_key
+deploy_key.pub
