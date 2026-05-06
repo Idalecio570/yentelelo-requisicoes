@@ -23,9 +23,10 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 interface SupplierModalProps {
-  open:     boolean
-  onClose:  () => void
-  supplier?: Entity
+  open:       boolean
+  onClose:    () => void
+  supplier?:  Entity
+  onCreated?: (entity: Entity) => void
 }
 
 function Field({ label, error, children, required }: {
@@ -47,7 +48,7 @@ const inputCls = (err?: string) => cn(
   err ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
 )
 
-export function SupplierModal({ open, onClose, supplier }: SupplierModalProps) {
+export function SupplierModal({ open, onClose, supplier, onCreated }: SupplierModalProps) {
   const isEdit = !!supplier
   const create = useCreateSupplier()
   const update = useUpdateSupplier()
@@ -104,11 +105,13 @@ export function SupplierModal({ open, onClose, supplier }: SupplierModalProps) {
       if (isEdit && supplier) {
         await update.mutateAsync({ id: supplier.id, payload })
         toast.success("Fornecedor actualizado!")
+        onClose()
       } else {
-        await create.mutateAsync(payload)
+        const entity = await create.mutateAsync(payload)
         toast.success("Fornecedor criado!")
+        onCreated?.(entity)
+        onClose()
       }
-      onClose()
     } catch {
       toast.error("Erro ao guardar fornecedor.")
     }
