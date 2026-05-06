@@ -8,6 +8,7 @@ export interface AuthContextValue {
   user:            User | null
   profile:         Profile | null
   loading:         boolean
+  profileLoading:  boolean
   isAuthenticated: boolean
   signOut:         () => Promise<void>
 }
@@ -18,6 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(false)
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
@@ -46,13 +48,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // session?.user?.id é primitivo (string) — estável enquanto o utilizador não muda
   useEffect(() => {
     const userId = session?.user?.id
-    if (!userId) return
+    if (!userId) { setProfile(null); return }
+    setProfileLoading(true)
     supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .single()
-      .then(({ data }) => setProfile(data ?? null))
+      .then(({ data }) => {
+        setProfile(data ?? null)
+        setProfileLoading(false)
+      })
   }, [session?.user?.id])
 
   const value = useMemo<AuthContextValue>(() => ({
@@ -60,9 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user:            session?.user ?? null,
     profile,
     loading,
+    profileLoading,
     isAuthenticated: !!session,
     signOut,
-  }), [session, profile, loading, signOut])
+  }), [session, profile, loading, profileLoading, signOut])
 
   return (
     <AuthContext.Provider value={value}>

@@ -17,11 +17,10 @@ function Spinner() {
 
 /** Guarda de rota com verificação de autenticação e role */
 export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
-  const { session, loading } = useAuthContext()
-  // profile e signOut via hook completo (dentro do router)
+  const { session, loading, profileLoading } = useAuthContext()
   const { profile, signOut } = useAuth()
 
-  if (loading) return <Spinner />
+  if (loading || profileLoading) return <Spinner />
 
   if (!session) return <Navigate to="/login" replace />
 
