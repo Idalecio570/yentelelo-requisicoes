@@ -245,13 +245,14 @@ export function UserModal({ open, onClose, user }: UserModalProps) {
             {showDirecaoSelect ? (
               <Field label="Direcção" error={(errors as { direcao_id?: { message?: string } }).direcao_id?.message}>
                 <Select
-                  value={watch("direcao_id") ?? ""}
-                  onValueChange={(v) => setValue("direcao_id", v || null)}
+                  value={watch("direcao_id") || "_none"}
+                  onValueChange={(v) => setValue("direcao_id", v === "_none" ? null : v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="— Seleccione —" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="_none">— Nenhuma —</SelectItem>
                     {direcoes.map((d) => (
                       <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
                     ))}

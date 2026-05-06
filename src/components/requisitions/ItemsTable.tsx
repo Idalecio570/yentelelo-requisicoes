@@ -205,13 +205,14 @@ export function ItemsTable({
                     <div>
                       <label className={labelCls}>Categoria</label>
                       <Select
-                        value={it.categoria}
-                        onValueChange={(v) => update(it._key, { categoria: v })}
+                        value={it.categoria || "_none"}
+                        onValueChange={(v) => update(it._key, { categoria: v === "_none" ? "" : v })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="— Seleccionar —" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="_none">— Nenhuma —</SelectItem>
                           {ITEM_CATEGORIAS.map((c) => (
                             <SelectItem key={c} value={c}>{c}</SelectItem>
                           ))}
