@@ -135,7 +135,7 @@ export function RequisitionDetailPage() {
 
   const isOwner     = profile?.id === req.criado_por
   const canEdit     = isOwner && (req.status === "pendente" || req.status === "devolvido")
-  const canCancel   = isOwner && !["cancelado", "rejeitado", "aprovado_final"].includes(req.status)
+  const canCancel   = isOwner && ["pendente", "devolvido"].includes(req.status)
   const isGestor    = profile?.role === "gestor_escritorio"
   const isDirector  = profile?.role === "director_geral"
   const isAdmin     = profile?.role === "admin"
