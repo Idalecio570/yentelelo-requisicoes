@@ -749,6 +749,7 @@ export function RequisitionWizard() {
         criado_por:      profile.id,
         direcao_id:      values.direcao_id,
         template_origem: values.template_origem ?? null,
+        status:          profile.role === "gestor_escritorio" ? "aprovado_escritorio" : "pendente",
         anexos:          [],
         orcamentos:      values.orcamentos.map((o) => ({
           fornecedor: o.fornecedor,

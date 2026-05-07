@@ -176,6 +176,7 @@ export function EditRequisitionPage() {
           tipo:       values.tipo,
           urgencia:   values.urgencia,
           direcao_id: values.direcao_id,
+          status:     profile?.role === "gestor_escritorio" ? "aprovado_escritorio" : "pendente",
           orcamentos: values.orcamentos.map((o) => ({
             fornecedor: o.fornecedor,
             valor:      o.valor,

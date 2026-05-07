@@ -92,7 +92,7 @@ export function useUpdateRequisition() {
     }): Promise<Requisition> => {
       const { data, error } = await supabase
         .from("requisitions")
-        .update({ ...payload, status: "pendente" })
+        .update({ ...payload, status: payload.status ?? ("pendente" as RequisitionStatus) })
         .eq("id", id)
         .select(SELECT_FULL)
         .single()
