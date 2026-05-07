@@ -240,7 +240,7 @@ export type RequisitionInsert = Pick<
   Requisition,
   "titulo" | "descricao" | "tipo" | "urgencia" | "valor_estimado" |
   "entity_id" | "criado_por" | "direcao_id" | "anexos" | "orcamentos" | "template_origem"
->
+> & { status?: RequisitionStatus }
 
 export type ProfileUpdate = Partial<
   Pick<Profile, "nome_completo" | "email" | "role" | "direcao_id" | "ativo" | "notif_email">
