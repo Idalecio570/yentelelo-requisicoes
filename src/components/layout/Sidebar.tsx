@@ -79,7 +79,7 @@ function useDeliverCount(userId: string | undefined, role: Role | undefined) {
         .eq("criado_por", userId)
       return count ?? 0
     },
-    enabled:         !!userId && !!role && ["colaborador", "gestor_tics"].includes(role),
+    enabled:         !!userId && !!role && ["colaborador", "gestor_tics", "gestor_escritorio"].includes(role),
     refetchInterval: 60_000,
     staleTime:       30_000,
   })
