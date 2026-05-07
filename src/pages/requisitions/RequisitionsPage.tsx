@@ -20,7 +20,7 @@ const URGENCIA_CLASSES: Record<RequisitionUrgencia, string> = {
   muito_urgente: "bg-red-50 text-red-700 ring-1 ring-red-200",
 }
 
-const inputCls = "px-3 py-2 text-[13px] border border-[#d2d2d7] rounded-[8px] bg-white focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 text-[#1d1d1f] placeholder:text-[#86868b]"
+const inputCls = "px-3 py-[7px] text-[13px] border border-[#d2d2d7] rounded-[8px] bg-white focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 text-[#1d1d1f] placeholder:text-[#86868b]"
 
 export function RequisitionsPage() {
   const { profile } = useAuth()
@@ -111,19 +111,24 @@ export function RequisitionsPage() {
 
       {/* Filtros */}
       <div className="bg-white rounded-[20px] p-4 mb-4" style={{ boxShadow: "0 4px 16px -4px rgba(15,23,42,.08), 0 0 0 1px rgba(15,23,42,.04)" }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5">
 
-          {/* Pesquisa */}
-          <div className="relative xl:col-span-2">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86868b] pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Pesquisar título ou solicitante…"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-              className={`${inputCls} w-full pl-8`}
-            />
-          </div>
+        {/* Linha 1 — Pesquisa (largura total) */}
+        <div className="relative mb-2.5">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86868b] pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Pesquisar título ou solicitante…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            className={`${inputCls} w-full pl-8`}
+          />
+        </div>
+
+        {/* Linha 2 — Filtros + Datas + Limpar
+            Mobile: grid 2 colunas
+            md:     grid 3 colunas
+            xl:     todos em linha (6 colunas)                          */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5 items-center">
 
           <Select value={status || "_all"} onValueChange={(v) => { setStatus(v === "_all" ? "" : v as RequisitionStatus); setPage(1) }}>
             <SelectTrigger><SelectValue placeholder="Todos os estados" /></SelectTrigger>
@@ -154,30 +159,28 @@ export function RequisitionsPage() {
             </SelectContent>
           </Select>
 
-          <div className="flex gap-2">
-            <DateInput
-              value={dateFrom}
-              onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
-              title="Data de início"
-              className="flex-1 min-w-0"
-            />
-            <DateInput
-              value={dateTo}
-              onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
-              title="Data de fim"
-              className="flex-1 min-w-0"
-            />
-          </div>
-        </div>
+          <DateInput
+            value={dateFrom}
+            onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+            title="Data de início"
+          />
 
-        {hasFilters && (
-          <button
-            onClick={resetFilters}
-            className="mt-2.5 text-[12px] text-red-600 hover:underline"
-          >
-            Limpar filtros
-          </button>
-        )}
+          <DateInput
+            value={dateTo}
+            onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+            title="Data de fim"
+          />
+
+          {/* Botão Limpar — span 2 colunas em mobile, 1 nas restantes */}
+          {hasFilters && (
+            <button
+              onClick={resetFilters}
+              className="col-span-2 md:col-span-1 w-full px-3 py-[7px] text-[12px] font-medium text-red-600 rounded-[8px] border border-transparent hover:bg-red-50 hover:border-red-100 transition-colors"
+            >
+              Limpar filtros
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabela */}
