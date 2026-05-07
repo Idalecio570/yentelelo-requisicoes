@@ -14,8 +14,9 @@ export function MainLayout() {
     <div className="flex h-screen overflow-hidden" style={{ background: "#FAFAFA" }}>
       {/* ------------------------------------------------------------------ */}
       {/* Sidebar desktop (fixa, visível em lg+)                              */}
+      {/* h-full garante que o aside filho resolve 100% correctamente         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 h-full">
         <Sidebar />
       </div>
 
@@ -44,10 +45,12 @@ export function MainLayout() {
 
       {/* ------------------------------------------------------------------ */}
       {/* Área principal                                                       */}
+      {/* min-w-0 impede overflow horizontal (flex items têm min-width:auto)  */}
       {/* ------------------------------------------------------------------ */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
         <Header onMenuClick={() => setIsMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto">
+        {/* min-h-0 permite ao main encolher abaixo do conteúdo em flex      */}
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <Outlet />
         </main>
       </div>

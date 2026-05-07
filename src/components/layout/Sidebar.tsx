@@ -194,7 +194,8 @@ export function Sidebar({ onClose }: SidebarProps) {
       </div>
 
       {/* ── Navegação ── */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-px">
+      {/* min-h-0 é obrigatório para overflow-y-auto funcionar em flex column */}
+      <nav className="flex-1 min-h-0 overflow-y-auto px-2 py-3 space-y-px">
 
         {/* Secção GERAL */}
         <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: "rgba(255,255,255,0.35)" }}>

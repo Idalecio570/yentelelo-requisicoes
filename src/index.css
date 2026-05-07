@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Garante cadeia de altura: html → body → #root → layout */
+html,
+body {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
 @layer base {
   :root {
     --background: 0 0% 98%;          /* #FAFAFA */
