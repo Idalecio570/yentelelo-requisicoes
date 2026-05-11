@@ -99,7 +99,7 @@ export function RequisitionDetailPage() {
   const { data: approvals = [] }         = useApprovals(id)
   const { data: comments  = [] }         = useComments(id)
   const { data: payments  = [] }         = usePayments(id)
-  const { data: reqItems  = [] }         = useRequisitionItems(id)
+  const { data: reqItems  = [], error: itemsError } = useRequisitionItems(id)
   const cancelReq      = useCancelRequisition()
   const createApproval = useCreateApproval()
   const createComment  = useCreateComment()
@@ -324,22 +324,28 @@ export function RequisitionDetailPage() {
           {/* Itens da Requisição */}
           <div className={cardCls} style={cardStyle}>
             <h2 className={`${sectionHdr} mb-4`}>Itens da Requisição</h2>
-            <ItemsTable
-              items={reqItems.map<ItemRowData>((it) => ({
-                _key:           it.id,
-                descricao:      it.descricao,
-                categoria:      it.categoria ?? "",
-                quantidade:     it.quantidade,
-                valor_unitario: it.valor_unitario,
-                entity_id:      it.entity_id ?? "",
-                entityName:     it.entity?.nome,
-                notas:          it.notas ?? "",
-                ordem:          it.ordem,
-              }))}
-              onChange={() => {}}
-              entities={[]}
-              readOnly
-            />
+            {itemsError ? (
+              <p className="text-xs text-red-500 italic py-2">
+                Erro ao carregar itens: {itemsError.message}
+              </p>
+            ) : (
+              <ItemsTable
+                items={reqItems.map<ItemRowData>((it) => ({
+                  _key:           it.id,
+                  descricao:      it.descricao,
+                  categoria:      it.categoria ?? "",
+                  quantidade:     it.quantidade,
+                  valor_unitario: it.valor_unitario,
+                  entity_id:      it.entity_id ?? "",
+                  entityName:     it.entity?.nome,
+                  notas:          it.notas ?? "",
+                  ordem:          it.ordem,
+                }))}
+                onChange={() => {}}
+                entities={[]}
+                readOnly
+              />
+            )}
           </div>
 
           {/* Orçamentos */}
