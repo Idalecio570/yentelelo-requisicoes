@@ -21,6 +21,7 @@ import { formatCurrency } from "@/lib/utils"
 import { ItemsTable, newItemRow } from "@/components/requisitions/ItemsTable"
 import type { ItemRowData } from "@/components/requisitions/ItemsTable"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Combobox } from "@/components/ui/combobox"
 import type { RequisitionUrgencia, RequisitionTipo } from "@/types"
 
 // ---------------------------------------------------------------------------
