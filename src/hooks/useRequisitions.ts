@@ -123,5 +123,18 @@ export function useCancelRequisition() {
   })
 }
 
+export function useAttachFactura() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ reqId, url }: { reqId: string; url: string }): Promise<void> => {
+      const { error } = await supabase.rpc("attach_factura", { req_id: reqId, url })
+      if (error) throw error
+    },
+    onSuccess: (_, { reqId }) => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.requisition(reqId) })
+    },
+  })
+}
+
 // Aliases de compatibilidade
 export { useRequisitions as useRequisicoes, useRequisition as useRequisicao }

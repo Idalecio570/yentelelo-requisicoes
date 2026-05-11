@@ -1,18 +1,19 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useParams, Link } from "react-router-dom"
 import { toast } from "sonner"
 import {
   ArrowLeft, Pencil, XCircle, Loader2,
   CheckCircle2, XOctagon, CornerUpLeft, Send,
-  Paperclip, MessageSquare, CreditCard,
+  Paperclip, MessageSquare, CreditCard, Receipt,
 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 import { PageWrapper } from "@/components/layout/PageWrapper"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Modal } from "@/components/shared/Modal"
 import { DangerConfirmModal } from "@/components/shared/DangerConfirmModal"
 import { StatusContextBanner } from "@/components/shared/StatusContextBanner"
 import { Breadcrumb } from "@/components/shared/Breadcrumb"
-import { useRequisition, useCancelRequisition } from "@/hooks/useRequisitions"
+import { useRequisition, useCancelRequisition, useAttachFactura } from "@/hooks/useRequisitions"
 import { useApprovals, useCreateApproval } from "@/hooks/useApprovals"
 import { useComments, useCreateComment } from "@/hooks/useComments"
 import { usePayments, useCreatePayment } from "@/hooks/usePayments"
@@ -103,6 +104,7 @@ export function RequisitionDetailPage() {
   const createApproval = useCreateApproval()
   const createComment  = useCreateComment()
   const createPayment  = useCreatePayment()
+  const attachFactura  = useAttachFactura()
 
   const [approvalModal, setApprovalModal] = useState<{
     open: boolean; decisao: ApprovalDecisao
@@ -114,6 +116,8 @@ export function RequisitionDetailPage() {
   const [paymentForm, setPaymentForm]   = useState({ valor: "", data: "", notas: "" })
   const [commentText, setCommentText]   = useState("")
   const [sendingComment, setSendingComment] = useState(false)
+  const [uploadingFactura, setUploadingFactura] = useState(false)
+  const facturaInputRef = useRef<HTMLInputElement>(null)
 
   if (isLoading) {
     return (
@@ -140,10 +144,32 @@ export function RequisitionDetailPage() {
   const isDirector  = profile?.role === "director_geral"
   const isAdmin     = profile?.role === "admin"
 
-  const canApproveL1  = (isGestor || isAdmin) && req.status === "pendente"
-  const canApproveL2  = (isDirector || isAdmin) && req.status === "aprovado_escritorio"
-  const saldoReq      = Math.max(0, (req.valor_estimado ?? 0) - (req.total_paid ?? 0))
-  const canAddPayment = (isGestor || isDirector || isAdmin) && req.status === "aprovado_final" && saldoReq > 0
+  const canApproveL1    = (isGestor || isAdmin) && req.status === "pendente"
+  const canApproveL2    = (isDirector || isAdmin) && req.status === "aprovado_escritorio"
+  const saldoReq        = Math.max(0, (req.valor_estimado ?? 0) - (req.total_paid ?? 0))
+  const canAddPayment   = (isGestor || isDirector || isAdmin) && req.status === "aprovado_final" && saldoReq > 0
+  const canAttachFactura = isOwner && req.status === "aprovado_final" && req.payment_status !== "sem_pagamento"
+
+  async function handleFacturaUpload(file: File) {
+    setUploadingFactura(true)
+    try {
+      const ext  = file.name.split(".").pop() ?? "pdf"
+      const path = `facturas/${id}/${Date.now()}.${ext}`
+      const { error: uploadErr } = await supabase.storage
+        .from("requisitions-attachments")
+        .upload(path, file, { upsert: true })
+      if (uploadErr) throw uploadErr
+      const { data: { publicUrl } } = supabase.storage
+        .from("requisitions-attachments")
+        .getPublicUrl(path)
+      await attachFactura.mutateAsync({ reqId: id, url: publicUrl })
+      toast.success("Factura anexada com sucesso!")
+    } catch {
+      toast.error("Erro ao anexar factura.")
+    } finally {
+      setUploadingFactura(false)
+    }
+  }
 
   async function handleApproval() {
     if (!profile) return
@@ -522,6 +548,68 @@ export function RequisitionDetailPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Factura */}
+          {(canAttachFactura || req.factura_url) && (
+            <div className={cardCls} style={cardStyle}>
+              <h2 className={`${sectionHdr} flex items-center gap-1.5 mb-4`}>
+                <Receipt size={12} /> Factura
+              </h2>
+
+              {req.factura_url ? (
+                <div className="flex items-center justify-between gap-3">
+                  <a
+                    href={req.factura_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-[13px] font-medium text-[#002C62] hover:underline truncate"
+                  >
+                    <Paperclip size={13} className="shrink-0" />
+                    <span className="truncate">Ver factura</span>
+                  </a>
+                  {canAttachFactura && (
+                    <button
+                      onClick={() => facturaInputRef.current?.click()}
+                      disabled={uploadingFactura}
+                      className="text-[11px] text-[#6e6e73] hover:text-[#1d1d1f] shrink-0 transition-colors"
+                    >
+                      Substituir
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-3">
+                  <p className="text-[11px] italic mb-3" style={{ color: "#94A3B8" }}>
+                    Sem factura anexada.
+                  </p>
+                  {canAttachFactura && (
+                    <button
+                      onClick={() => facturaInputRef.current?.click()}
+                      disabled={uploadingFactura}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 border border-dashed border-[#d2d2d7] rounded-[8px] text-[12px] text-[#6e6e73] hover:border-[#002C62] hover:text-[#002C62] transition-colors disabled:opacity-50"
+                    >
+                      {uploadingFactura
+                        ? <><Loader2 size={13} className="animate-spin" /> A carregar…</>
+                        : <><Paperclip size={13} /> Anexar factura</>
+                      }
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <input
+                ref={facturaInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFacturaUpload(file)
+                  e.target.value = ""
+                }}
+              />
             </div>
           )}
 

@@ -163,6 +163,7 @@ export interface Requisition {
   template_origem: string | null
   total_paid:      number
   payment_status:  PaymentStatus
+  factura_url:     string | null
   created_at:      string
   updated_at:      string
   // Relações
