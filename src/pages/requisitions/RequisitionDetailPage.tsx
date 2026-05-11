@@ -301,8 +301,7 @@ export function RequisitionDetailPage() {
                 <dt className="text-[11px] text-[#86868b]">Direcção</dt>
                 <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5">{req.direcao?.nome ?? "—"}</dd>
               </div>
-              {/* Fornecedor legado (requisições sem itens) */}
-              {req.entity?.nome && reqItems.length === 0 && (
+              {req.entity?.nome && (
                 <div>
                   <dt className="text-[11px] text-[#86868b]">Fornecedor</dt>
                   <dd className="text-[13px] font-medium text-[#1d1d1f] mt-0.5">{req.entity.nome}</dd>

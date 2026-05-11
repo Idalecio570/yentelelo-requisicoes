@@ -317,6 +317,7 @@ function Step1({
 function Step2({
   items, onItemsChange, entities, files, onFilesChange,
   register, control, itemsError, showItemsErrors,
+  entityId, onEntityChange,
 }: {
   items:           ItemRowData[]
   onItemsChange:   (items: ItemRowData[]) => void
@@ -327,8 +328,15 @@ function Step2({
   control:         ReturnType<typeof useForm<FormValues>>["control"]
   itemsError:      string | null
   showItemsErrors: boolean
+  entityId:        string
+  onEntityChange:  (id: string) => void
 }) {
   const { fields, append, remove } = useFieldArray({ control, name: "orcamentos" })
+
+  const supplierOptions = [
+    { value: "", label: "— Nenhum —" },
+    ...entities.map((e) => ({ value: e.id, label: e.nome })),
+  ]
 
   function handleFileAdd(e: React.ChangeEvent<HTMLInputElement>) {
     const added = Array.from(e.target.files ?? [])
@@ -338,6 +346,20 @@ function Step2({
 
   return (
     <div className="space-y-8">
+      {/* Fornecedor principal */}
+      <div>
+        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+          Fornecedor <span className="normal-case font-normal text-gray-400">(opcional)</span>
+        </label>
+        <p className="text-xs text-gray-400 mb-2">Fornecedor principal desta requisição.</p>
+        <Combobox
+          value={entityId}
+          onValueChange={onEntityChange}
+          options={supplierOptions}
+          placeholder="— Nenhum —"
+        />
+      </div>
+
       {/* Itens */}
       <div>
         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Itens da Requisição *</p>
@@ -604,6 +626,7 @@ export function RequisitionWizard() {
 
   const [step,           setStep]          = useState(0)
   const [files,          setFiles]         = useState<File[]>([])
+  const [entityId,       setEntityId]      = useState<string>("")
   const [uploading,      setUploading]     = useState(false)
   const [items,          setItems]         = useState<ItemRowData[]>(() => {
     if (!profile) return [newItemRow(1)]
@@ -745,7 +768,7 @@ export function RequisitionWizard() {
         tipo:            values.tipo,
         urgencia:        values.urgencia,
         valor_estimado:  null,
-        entity_id:       null,
+        entity_id:       entityId || null,
         criado_por:      profile.id,
         direcao_id:      values.direcao_id,
         template_origem: values.template_origem ?? null,
@@ -869,6 +892,8 @@ export function RequisitionWizard() {
             control={control}
             itemsError={itemsError}
             showItemsErrors={showItemsErr}
+            entityId={entityId}
+            onEntityChange={setEntityId}
           />
         )}
         {step === 2 && (

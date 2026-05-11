@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
 import { Plus, Trash2, Loader2, Upload, X } from "lucide-react"
+import { Combobox } from "@/components/ui/combobox"
 import { PageWrapper } from "@/components/layout/PageWrapper"
 import { Breadcrumb } from "@/components/shared/Breadcrumb"
 import { useAuth } from "@/hooks/useAuth"
@@ -32,6 +33,7 @@ const schema = z.object({
   tipo:       z.enum(["compra", "servico"]),
   urgencia:   z.enum(["normal", "urgente", "muito_urgente"]),
   direcao_id: z.string().min(1, "Seleccione a direcção"),
+  entity_id:  z.string().optional().nullable(),
   orcamentos: z.array(orcamentoSchema).max(3),
 })
 
@@ -72,7 +74,7 @@ export function EditRequisitionPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       titulo: "", descricao: "", tipo: "compra",
-      urgencia: "normal", direcao_id: "", orcamentos: [],
+      urgencia: "normal", direcao_id: "", entity_id: null, orcamentos: [],
     },
   })
 
@@ -89,6 +91,7 @@ export function EditRequisitionPage() {
       tipo:       req.tipo ?? "compra",
       urgencia:   req.urgencia,
       direcao_id: req.direcao_id,
+      entity_id:  req.entity_id ?? null,
       orcamentos: req.orcamentos.map((o) => ({
         fornecedor: o.fornecedor,
         valor:      o.valor,
@@ -175,6 +178,7 @@ export function EditRequisitionPage() {
           descricao:  values.descricao ?? null,
           tipo:       values.tipo,
           urgencia:   values.urgencia,
+          entity_id:  values.entity_id ?? null,
           direcao_id: values.direcao_id,
           status:     profile?.role === "gestor_escritorio" ? "aprovado_escritorio" : "pendente",
           orcamentos: values.orcamentos.map((o) => ({
@@ -299,6 +303,18 @@ export function EditRequisitionPage() {
               </div>
             )}
             {!isGestorTics && <input type="hidden" {...register("direcao_id")} />}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Fornecedor</label>
+              <Combobox
+                value={watch("entity_id") ?? ""}
+                onValueChange={(v) => setValue("entity_id", v || null)}
+                options={[
+                  { value: "", label: "— Nenhum —" },
+                  ...entities.map((e) => ({ value: e.id, label: e.nome })),
+                ]}
+                placeholder="— Nenhum —"
+              />
+            </div>
           </div>
         </div>
 
